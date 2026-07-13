@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"declaration": false,
+		"lib": ["esnext"],
+		"module": "nodenext",
+		"moduleDetection": "force",
+		"moduleResolution": "nodenext",
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"skipLibCheck": true,
+		"strictNullChecks": false,
+		"types": ["node"]
+	},
+	"exclude": ["./src/cdp"],
+	"include": ["./src", "./src/lib"]
+}
