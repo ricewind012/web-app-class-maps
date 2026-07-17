@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { config } from "@web-app-class-maps/scripts";
 import type { PluginCreator } from "postcss";
 import yargs from "yargs";
-import { config } from "../api.js";
 
 const PAGES = [
 	"accountpreferences",

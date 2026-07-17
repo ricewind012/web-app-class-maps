@@ -1,5 +1,6 @@
 import path from "node:path";
 import type CDP from "chrome-remote-interface";
+import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
 import { CDP_FILES_PATH, DEFAULT_CONFIG, SCRIPT_PATH } from "./constants.js";
 import { createConnection, readFile } from "./shared.js";
@@ -76,12 +77,16 @@ export const readScript = (name: ScriptFile): Promise<Script> =>
 /**
  * Evaluates a JavaScript expression in the active CDP context.
  */
-export const run = (expression: string, conn: CDP.Client = connection) =>
-	conn.Runtime.evaluate({
+export function run(
+	expression: string,
+	conn: CDP.Client = connection,
+): Promise<Protocol.Runtime.EvaluateResponse> {
+	return conn.Runtime.evaluate({
 		awaitPromise: true,
 		expression,
 		returnByValue: true,
 	});
+}
 
 /**
  * Reads and evaluates a helper script from the `cdp` directory and returns its

@@ -8,6 +8,20 @@
         "@biomejs/biome": "^2.5.3",
       },
     },
+    "packages/postcss-plugins": {
+      "name": "@web-app-class-maps/postcss-plugins",
+      "version": "0.9.9",
+      "dependencies": {
+        "@web-app-class-maps/scripts": "*",
+        "postcss": "^8.5.19",
+        "yargs": "^18.0.0",
+      },
+      "devDependencies": {
+        "@types/node": "^26.1.1",
+        "@types/yargs": "^17.0.35",
+        "typescript": "^7.0.2",
+      },
+    },
     "packages/scripts": {
       "name": "@web-app-class-maps/scripts",
       "version": "0.9.9",
@@ -18,13 +32,10 @@
         "chrome-remote-interface": "^0.34.0",
         "find-process": "^2.1.1",
         "lilconfig": "^3.1.3",
-        "postcss": "^8.5.18",
-        "yargs": "^18.0.0",
       },
       "devDependencies": {
         "@types/chrome-remote-interface": "^0.34.0",
         "@types/node": "^26.1.1",
-        "@types/yargs": "^17.0.35",
         "prettier": "^3.0.0",
         "typescript": "^7.0.2",
       },
@@ -96,6 +107,8 @@
     "@typescript/typescript-win32-arm64": ["@typescript/typescript-win32-arm64@7.0.2", "", { "os": "win32", "cpu": "arm64" }, "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ=="],
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
+
+    "@web-app-class-maps/postcss-plugins": ["@web-app-class-maps/postcss-plugins@workspace:packages/postcss-plugins"],
 
     "@web-app-class-maps/scripts": ["@web-app-class-maps/scripts@workspace:packages/scripts"],
 

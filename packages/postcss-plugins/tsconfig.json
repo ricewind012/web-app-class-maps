@@ -11,6 +11,5 @@
 		"strictNullChecks": false,
 		"types": ["node"]
 	},
-	"exclude": ["./src/cdp"],
-	"include": ["./src", "./src/lib"]
+	"include": ["./src"]
 }
