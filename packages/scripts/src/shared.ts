@@ -68,7 +68,9 @@ export async function createConnection(
 			.cmd.match(/--remote-debugging-port=(\d+)/)?.[1],
 	);
 	if (Number.isNaN(port)) {
-		throw new Error("Is Steam running?");
+		throw new Error(
+			"Is -cef-enable-debugging in use or Millennium installed with -dev being in use?",
+		);
 	}
 
 	const connection = await cdp({

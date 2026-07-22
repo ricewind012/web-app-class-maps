@@ -4,12 +4,12 @@ A collection of scripts for easier and future-proof web app theming.
 
 ## Usage
 
-```sh
+```
 $ bun i @web-app-class-maps/scripts
 $ bun x @web-app-class-maps/scripts <script> <page>
 ```
 
-Note that running any script requires Steam running with `-cef-enable-debugging`.
+Note that running `build-class-modules` and `make-readable-classes` scripts require Steam running with the `-cef-enable-debugging` launch option, or with Millennium and the `-dev` launch option.
 
 ## Scripts
 
@@ -39,7 +39,7 @@ Note that running any script requires Steam running with `-cef-enable-debugging`
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
 | #ClassName is undefined   | Typo or that class either got renamed or removed, and so you will have to update it yourself.     |
 | [mod_name] no such module | Typo or that module either got renamed or removed, see diffs [here][diffs] depending on the page. |
-| [map_name] no such map    | Use `npx web-app-class-maps build-class-modules map_name` to create it.                           |
+| [map_name] no such map    | Use `bun x @web-app-class-maps/scripts build-class-modules map_name` to create it.                |
 
 ## Config
 
