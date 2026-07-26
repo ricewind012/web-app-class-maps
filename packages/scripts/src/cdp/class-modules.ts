@@ -1,4 +1,9 @@
-classModules = {
+// build-class-modules
+declare var exportedModules: [string, (filter: any) => boolean][];
+declare var parsedModules: [string, ClassModule][];
+declare var specialModules: ClassModuleMap;
+
+var classModules: ClassModuleMap = {
 	...(window.specialModules || {}),
 	...(window.parsedModules
 		?.map((e) => ({ [e[0]]: e[1] }))

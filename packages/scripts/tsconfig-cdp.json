@@ -1,14 +1,9 @@
 {
 	"compilerOptions": {
-		"isolatedModules": true,
 		"lib": ["dom", "dom.iterable", "esnext"],
-		// Removes the "export {}" at the end, fucking tsc
-		//"module": "none",
 		"outDir": "./dist/cdp",
 		"rootDir": "./src/cdp",
 		"strictNullChecks": false,
-		// Defaults, but have to be redeclared because of the module value
-		"target": "esnext",
 		"types": []
 	},
 	"include": ["./src/cdp"]

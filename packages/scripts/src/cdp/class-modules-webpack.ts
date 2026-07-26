@@ -8,6 +8,7 @@ let initReq: InitReq | undefined;
 const webpackCache: Record<string, WebpackModule> = {};
 // biome-ignore lint/style/noNonNullAssertion: No other way probably
 const webpackGlobal = Object.keys(window).find((e) => e.startsWith("webpack"))!;
+console.log(webpackGlobal);
 const webpackModules = window[webpackGlobal] as {
 	push(chunk: [[number], object, (r: InitReq) => void]): void;
 };

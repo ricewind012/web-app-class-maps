@@ -6,10 +6,10 @@ A collection of scripts for easier and future-proof web app theming.
 
 ```
 $ bun i @web-app-class-maps/scripts
-$ bun x @web-app-class-maps/scripts <script> <page>
+$ bun x @web-app-class-maps/scripts <app> <script> <page>
 ```
 
-Note that running `build-class-modules` and `make-readable-classes` scripts require Steam running with the `-cef-enable-debugging` launch option, or with Millennium and the `-dev` launch option.
+Note that running the `build-class-modules` and `make-readable-classes` scripts in Steam require the app running with the `-cef-enable-debugging` launch option, or with Millennium and the `-dev` launch option.
 
 ## Scripts
 
@@ -22,16 +22,18 @@ Note that running `build-class-modules` and `make-readable-classes` scripts requ
 
 ## Pages
 
-| Name               | Description                                                                  |
-| ------------------ | ---------------------------------------------------------------------------- |
-| apppage            | Related items & controller info in https://store.steampowered.com/app/666220 |
-| accountpreferences | https://store.steampowered.com/account                                       |
-| client             | The Steam client. The default.                                               |
-| gameslist          | https://steamcommunity.com/my/games                                          |
-| notificationspage  | https://steamcommunity.com/my/notifications                                  |
-| profileedit        | https://steamcommunity.com/my/edit                                           |
-| shoppingcart       | https://store.steampowered.com/cart                                          |
-| storemenu          | https://store.steampowered.com (or any Steam store page)                     |
+| Name                    | Description                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| steamapppage            | Related items & controller info in https://store.steampowered.com/app/666220 |
+| steamaccountpreferences | https://store.steampowered.com/account                                       |
+| steamclient             | The Steam client                                                             |
+| steamgameslist          | https://steamcommunity.com/my/games                                          |
+| steamnotificationspage  | https://steamcommunity.com/my/notifications                                  |
+| steamprofileedit        | https://steamcommunity.com/my/edit                                           |
+| steamshoppingcart       | https://store.steampowered.com/cart                                          |
+| steamstoremenu          | https://store.steampowered.com (or any Steam store page)                     |
+
+Note that, for Steam, directories have to be named `apppage` instead of `steamapppage`, etc.
 
 ## Errors
 
@@ -39,7 +41,7 @@ Note that running `build-class-modules` and `make-readable-classes` scripts requ
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
 | #ClassName is undefined   | Typo or that class either got renamed or removed, and so you will have to update it yourself.     |
 | [mod_name] no such module | Typo or that module either got renamed or removed, see diffs [here][diffs] depending on the page. |
-| [map_name] no such map    | Use `bun x @web-app-class-maps/scripts build-class-modules map_name` to create it.                |
+| [map_name] no such map    | Use `npx @web-app-class-maps/scripts <app> build-class-modules map_name` to create it.            |
 
 ## Config
 

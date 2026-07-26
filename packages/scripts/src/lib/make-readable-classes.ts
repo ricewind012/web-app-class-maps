@@ -2,8 +2,8 @@ import type { Page } from "../api.js";
 import { connection, readScript, runCdpFile } from "../api.js";
 import { createWebConnection } from "../shared.js";
 
-export async function execute(page: Page | "client" = "client") {
-	const isClient = page === "client";
+export async function execute(page: Page) {
+	const isClient = page === "steamclient";
 	const webConn = isClient ? null : await createWebConnection(page);
 	const conn = isClient ? connection : webConn;
 

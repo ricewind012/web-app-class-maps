@@ -5,15 +5,18 @@ import type { PluginCreator } from "postcss";
 import yargs from "yargs";
 
 const PAGES = [
-	"accountpreferences",
-	"apppage",
-	"client",
-	"gameslist",
-	"notificationspage",
-	"profileedit",
-	"shoppingcart",
-	"storemenu",
+	"steamaccountpreferences",
+	"steamapppage",
+	"steamclient",
+	"steamgameslist",
+	"steamnotificationspage",
+	"steamprofileedit",
+	"steamshoppingcart",
+	"steamstoremenu",
 ];
+const STEAM_PAGES = new Set(
+	PAGES.filter((e) => e.startsWith("steam")).map((e) => e.replace("steam", "")),
+);
 const SELECTOR = /#(\w+)/g;
 
 const argv = yargs(process.argv)
@@ -45,14 +48,20 @@ export const selectorReplacementPlugin: PluginCreator<never> = () => ({
 		const fileName = path.basename(file);
 
 		const splitPath = file.split(path.sep);
-		const page = PAGES.find((e) => splitPath.includes(e));
-		if (!page) {
+		// Steam stuff is scattered all across the websites, so make this
+		// consistent with others in the future, i.e. for Steam it can be
+		// "src/steam/web/apppage", "src/steam/client", for Discord just
+		// "src/discord", etc.
+		const page = splitPath.find((e) => PAGES.includes(e));
+		const steamPage = splitPath.find((e) => STEAM_PAGES.has(e));
+		const resolvedPage = page ?? (steamPage ? `steam${steamPage}` : undefined);
+		if (!resolvedPage) {
 			return;
 		}
 
-		const map = getClassMap(page);
+		const map = getClassMap(resolvedPage);
 		if (!map) {
-			console.error("[%s] no such map", page);
+			console.error("[%s] no such map", resolvedPage);
 			return;
 		}
 

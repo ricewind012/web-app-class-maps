@@ -1,4 +1,4 @@
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["cartfollowcreator", (e) => e.CartCreatorCtn],
 	["creatorhome", (e) => e.DevSummaryCtn],
 	["shoppingcart", (e) => e.ShoppingCartModal],

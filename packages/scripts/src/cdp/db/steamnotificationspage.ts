@@ -1,4 +1,4 @@
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["notificationspage", (e) => e.NotificationPageCtn],
 	[
 		"notification",

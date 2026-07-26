@@ -1,4 +1,4 @@
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["avatar", (e) => e.AvatarDialogUploadArea],
 	["avatarcollection", (e) => e.AvatarCollection],
 	["avatarcrop", (e) => e.AvatarCrop],

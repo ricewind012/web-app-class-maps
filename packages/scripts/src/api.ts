@@ -3,7 +3,9 @@ import type CDP from "chrome-remote-interface";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
 import { CDP_FILES_PATH, DEFAULT_CONFIG, SCRIPT_PATH } from "./constants.js";
-import { createConnection, readFile } from "./shared.js";
+import { appInfo, createConnection, getArgs, readFile } from "./shared.js";
+
+export type App = "steam";
 
 export interface Config {
 	/**
@@ -14,8 +16,12 @@ export interface Config {
 	/**
 	 * Directories for the postcss plugin to ignore.
 	 *
-	 * For example: `["client/shared", "web/vars"]` will ignore
-	 * `src/client/shared` and `src/web/vars`, assuming the base dir is `src`.
+	 * For example:
+	 * ```json
+	 * ["steam/client/shared", "steam/web/vars"]
+	 * ```
+	 * will ignore `src/steam/client/shared` and `src/steam/web/vars`, assuming
+	 * the base dir is `src`.
 	 */
 	ignore: string[];
 }
@@ -34,16 +40,19 @@ export type ScriptFile =
 	| "replace-old-classes";
 
 /**
- * Pages that have an existing class map, excluding `client`.
+ * Pages that have an existing class map, excluding `steamclient`.
  */
 export type Page =
-	| "accountpreferences"
-	| "apppage"
-	| "gameslist"
-	| "notificationspage"
-	| "profileedit"
-	| "shoppingcart"
-	| "storemenu";
+	| "steamaccountpreferences"
+	| "steamapppage"
+	| "steamclient"
+	| "steamgameslist"
+	| "steamnotificationspage"
+	| "steamprofileedit"
+	| "steamshoppingcart"
+	| "steamstoremenu";
+
+const [app] = getArgs();
 
 // postcss-cli hangs because of cdp
 const isPostcss =
@@ -53,13 +62,10 @@ const isPostcss =
 export const connection =
 	!isPostcss &&
 	(await createConnection((e) =>
-		e.find((e) => e.title === "SharedJSContext"),
+		// TODO: for now
+		e.find(appInfo[app ?? "steam"].connFilter),
 	).catch((e) => {
-		console.log(
-			"%s\nTry running Steam with %o or using Millennium",
-			e.message,
-			"-cef-enable-debugging",
-		);
+		console.log(appInfo[app].connErrorMsgFormat, e.message);
 		process.exit(1);
 	}));
 

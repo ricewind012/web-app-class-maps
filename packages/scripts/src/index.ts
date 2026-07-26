@@ -2,18 +2,26 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { connection, readScript, type ScriptFile } from "./api.js";
+import { type App, connection, readScript } from "./api.js";
 import { SCRIPT_PATH } from "./constants.js";
+import { getArgs } from "./shared.js";
 
-const files = fs.readdirSync(SCRIPT_PATH).map((e) => e.replace(".js", ""));
-if (!files.some((e) => process.argv[2] === e)) {
-	console.error("Usage: %s <script>", path.basename(process.argv[1]));
+// TODO: migrate doesn't care about this
+const [app, file, arg] = getArgs();
+
+const apps: App[] = ["steam"];
+const files = fs
+	.readdirSync(SCRIPT_PATH)
+	.filter((e) => e.endsWith(".js"))
+	.map((e) => e.replace(".js", ""));
+if (!apps.some((e) => app === e) || !files.some((e) => file === e)) {
+	console.error("Usage: %s <app> <script>", path.basename(process.argv[1]));
+	console.error("Where <app>:\n%s", apps.map((e) => `- ${e}`).join("\n"));
 	console.error("Where <script>:\n%s", files.map((e) => `- ${e}`).join("\n"));
 	connection.close();
 	process.exit(2);
 }
 
-const file = process.argv[2] as ScriptFile;
 const script = await readScript(file);
-await script.execute(process.argv[3]);
+await script.execute(arg);
 connection.close();

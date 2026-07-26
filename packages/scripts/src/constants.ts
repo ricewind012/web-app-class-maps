@@ -16,5 +16,3 @@ export const DEFAULT_CONFIG: Config = {
 	classMaps: "class_maps",
 	ignore: [],
 };
-
-export const STORE_BASE_URL = "https://store.steampowered.com";

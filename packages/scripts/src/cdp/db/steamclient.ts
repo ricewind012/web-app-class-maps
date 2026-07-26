@@ -1,11 +1,13 @@
-const gamepadDialogModules = findAllModules((e) => e.WithBottomSeparator);
+declare var parsedModules: [string, ClassModule][];
+
+var gamepadDialogModules = findAllModules((e) => e.WithBottomSeparator);
 // TODO: maybe use if it's still like this, idk
-const timelineScrollModules = findAllModules((e) => e.TimelineScrollContainer);
+var timelineScrollModules = findAllModules((e) => e.TimelineScrollContainer);
 
 /**
  * Special children that can not be easily identified.
  */
-specialModules = {
+var specialModules: ClassModuleMap = {
 	cliptimelinescroll: timelineScrollModules.find(
 		(e) =>
 			!e.thumbnailWidth &&
@@ -90,7 +92,7 @@ specialModules = {
 	});
 })();
 
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["aboutsteamdialog", (e) => e.AboutSteamDialog],
 	["accountpanel", (e) => e.ChangePersonaNameContent],
 	["accountsettings", (e) => e.Avatar && e.EntryLabel],

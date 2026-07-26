@@ -1,5 +1,5 @@
 // Note that every module is only available on the "family management" page.
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["authorizeddevices", (e) => e.AuthorizedDeviceGroup],
 	["cookies", (e) => e.CookieSection],
 	["familymanagement", (e) => e.FamilySettingsContainer],

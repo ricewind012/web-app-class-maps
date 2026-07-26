@@ -39,8 +39,9 @@ function main({ target }: { target: Window }) {
 		normalizeElement(el);
 	}
 
-	if (inClient) {
+	if (inSteamClient) {
 		for (const popup of popups) {
+			// @ts-expect-error: this works actually, fuck typescript
 			popup.removeEventListener("focus", main);
 		}
 	}
@@ -55,11 +56,18 @@ function main({ target }: { target: Window }) {
 	}
 }
 
-inClient = !!SteamClient.User;
-notInDb = [];
-if (inClient) {
-	window.popups = [...g_PopupManager.GetPopups()].map((e) => e.m_popup);
+declare const g_PopupManager: {
+	GetPopups(): MapIterator<{ window: Window }>;
+};
+declare const popups: Window[];
+declare const SteamClient: { User: object };
+
+var inSteamClient = !!SteamClient?.User;
+var notInDb: string[] = [];
+if (inSteamClient) {
+	window.popups = [...g_PopupManager.GetPopups()].map((e) => e.window);
 	for (const popup of popups) {
+		// @ts-expect-error: this works actually, fuck typescript
 		popup.addEventListener("focus", main);
 	}
 } else {

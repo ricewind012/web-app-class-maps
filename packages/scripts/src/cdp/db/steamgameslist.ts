@@ -1,4 +1,4 @@
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	// shared
 	["gamehover", (e) => e.ItemHoverSource],
 	["gameslist", (e) => e.Gameslistapp],

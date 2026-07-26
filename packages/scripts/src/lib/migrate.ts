@@ -11,7 +11,7 @@ const SELECTOR = /\.([\w-]+)/g;
 if (!fs.existsSync(CLASS_MAP_FILE)) {
 	const script = await readScript("build-class-modules");
 	// Most themes are for the client anyway
-	await script.execute("client");
+	await script.execute("steamclient");
 }
 
 const newFiles: Record<string, string[]> = {};

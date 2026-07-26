@@ -1,4 +1,4 @@
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["appreviewdetails", (e) => e.ReviewDetails],
 	["appreviews", (e) => e.ReviewSectionTitle],
 	// TODO: not found if no broadcast

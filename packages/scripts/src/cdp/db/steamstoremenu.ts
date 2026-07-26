@@ -1,4 +1,4 @@
-exportedModules = [
+var exportedModules: ExportedModuleMap = [
 	["capsulelist", (e) => e.CapsuleList],
 	["discount", (e) => e.OriginalPrice],
 	["discoveryqueue", (e) => e.DiscoveryQueue],

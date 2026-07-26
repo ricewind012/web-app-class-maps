@@ -12,7 +12,7 @@ if ([CLASS_MAP_FILE, OLD_CLASS_MAP_FILE].some((e) => !fs.existsSync(e))) {
 	console.log("Usage:");
 	console.log(
 		"1. Run %o on stable Steam.",
-		"npx web-app-class-maps build-class-modules",
+		"bun x @web-app-class-maps/scripts build-class-modules",
 	);
 	console.log("2. Move %o to %o.", CLASS_MAP_FILE, OLD_CLASS_MAP_FILE);
 	console.log("3. Run the same command on beta Steam.");
