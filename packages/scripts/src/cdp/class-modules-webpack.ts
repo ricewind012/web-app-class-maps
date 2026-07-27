@@ -8,7 +8,6 @@ let initReq: InitReq | undefined;
 const webpackCache: Record<string, WebpackModule> = {};
 // biome-ignore lint/style/noNonNullAssertion: No other way probably
 const webpackGlobal = Object.keys(window).find((e) => e.startsWith("webpack"))!;
-console.log(webpackGlobal);
 const webpackModules = window[webpackGlobal] as {
 	push(chunk: [[number], object, (r: InitReq) => void]): void;
 };
@@ -48,6 +47,7 @@ const allModules = Object.values<WebpackModule>(webpackCache).filter((e) => {
 	);
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 function findModule(filter: (mod: WebpackModule) => boolean) {
 	return allModules.find(filter);
 }
@@ -56,6 +56,7 @@ function findAllModules(filter: (mod: WebpackModule) => boolean) {
 	return allModules.filter(filter);
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 function findFirstModule(
 	filter: (mod: WebpackModule) => boolean,
 	component: string,
@@ -81,14 +82,10 @@ function findFirstModule(
  * @param key Class name.
  * @param index Array index.
  */
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 function findUniqueKey(key: string, index = 0) {
 	const mod = findAllModules((mod) => !!mod[key])[index];
 	return Object.keys(mod).find(
 		(modKey) => findAllModules((mod2) => !!mod2[modKey]).length === 1,
 	);
 }
-
-void findModule;
-void findAllModules;
-void findFirstModule;
-void findUniqueKey;

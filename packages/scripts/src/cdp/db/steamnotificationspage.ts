@@ -1,3 +1,4 @@
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var exportedModules: ExportedModuleMap = [
 	["notificationspage", (e) => e.NotificationPageCtn],
 	[

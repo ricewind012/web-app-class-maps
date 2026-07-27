@@ -1,3 +1,4 @@
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var exportedModules: ExportedModuleMap = [
 	["capsulelist", (e) => e.CapsuleList],
 	["discount", (e) => e.OriginalPrice],

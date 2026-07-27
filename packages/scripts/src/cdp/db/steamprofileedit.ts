@@ -1,3 +1,4 @@
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var exportedModules: ExportedModuleMap = [
 	["avatar", (e) => e.AvatarDialogUploadArea],
 	["avatarcollection", (e) => e.AvatarCollection],

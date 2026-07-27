@@ -7,6 +7,7 @@ var timelineScrollModules = findAllModules((e) => e.TimelineScrollContainer);
 /**
  * Special children that can not be easily identified.
  */
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var specialModules: ClassModuleMap = {
 	cliptimelinescroll: timelineScrollModules.find(
 		(e) =>
@@ -92,6 +93,7 @@ var specialModules: ClassModuleMap = {
 	});
 })();
 
+// biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var exportedModules: ExportedModuleMap = [
 	["aboutsteamdialog", (e) => e.AboutSteamDialog],
 	["accountpanel", (e) => e.ChangePersonaNameContent],

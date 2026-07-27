@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import postcss, { type PluginCreator } from "postcss";
 import { config } from "../api.js";
-import { readFile } from "../shared.js";
+import type { ClassModuleMap } from "../shared.js";
 
 const CLASS_MAP_FILE = path.join(config.classMaps, "client.json");
 const OLD_CLASS_MAP_FILE = path.join(config.classMaps, "client_old.json");
@@ -39,10 +39,10 @@ selectorReplacerPlugin.postcss = true;
 const cwd = process.cwd();
 const oldClasses = JSON.parse(
 	fs.readFileSync(OLD_CLASS_MAP_FILE, "utf8"),
-) as Record<string, Record<string, string>>;
+) as ClassModuleMap;
 const newClasses = JSON.parse(
 	fs.readFileSync(CLASS_MAP_FILE, "utf8"),
-) as Record<string, Record<string, string>>;
+) as ClassModuleMap;
 const modules = Object.keys(oldClasses);
 const keys = modules
 	.map((e) => ({ [e]: Object.keys(oldClasses[e]) }))
@@ -67,7 +67,7 @@ function findNewClassFromOld(oldName: string): string {
 }
 
 export async function execute() {
-	const files = fs.readdirSync(cwd, { recursive: true }) as string[];
+	const files = fs.readdirSync(cwd, { encoding: "utf8", recursive: true });
 	for (const file of files.filter((e) => e.endsWith(".css"))) {
 		postcss([
 			selectorReplacerPlugin({
@@ -75,7 +75,7 @@ export async function execute() {
 				replace: (_, s) => findNewClassFromOld(s),
 			}),
 		])
-			.process(readFile(file), {
+			.process(fs.readFileSync(file), {
 				from: file,
 			})
 			.then(({ css }) => {

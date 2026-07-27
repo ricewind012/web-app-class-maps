@@ -1,8 +1,9 @@
-// build-class-modules
-declare var exportedModules: [string, (filter: any) => boolean][];
+// from build-class-modules
+declare var exportedModules: ExportedModuleMap;
 declare var parsedModules: [string, ClassModule][];
 declare var specialModules: ClassModuleMap;
 
+// biome-ignore lint/correctness/noUnusedVariables: "Returns" below for CDP
 var classModules: ClassModuleMap = {
 	...(window.specialModules || {}),
 	...(window.parsedModules

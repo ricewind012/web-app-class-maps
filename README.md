@@ -41,7 +41,7 @@ Note that, for Steam, directories have to be named `apppage` instead of `steamap
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
 | #ClassName is undefined   | Typo or that class either got renamed or removed, and so you will have to update it yourself.     |
 | [mod_name] no such module | Typo or that module either got renamed or removed, see diffs [here][diffs] depending on the page. |
-| [map_name] no such map    | Use `npx @web-app-class-maps/scripts <app> build-class-modules map_name` to create it.            |
+| [map_name] no such map    | Use `bun x @web-app-class-maps/scripts <app> build-class-modules map_name` to create it.          |
 
 ## Config
 

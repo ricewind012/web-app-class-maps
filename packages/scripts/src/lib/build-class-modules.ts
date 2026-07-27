@@ -106,7 +106,7 @@ export async function execute(page: Page = "steamclient") {
 	const webConn = await getWebConn(page);
 
 	const conn = isClient ? connection : webConn;
-	await doTheThing(page as Page, conn);
+	await doTheThing(page, conn);
 
 	webConn?.close();
 	if (!isClient) {

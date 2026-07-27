@@ -2,15 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import postcss, { type PluginCreator } from "postcss";
 import { config, readScript } from "../api.js";
-import { readFile } from "../shared.js";
+import type { ClassModuleMap } from "../shared.js";
 
-const CLASS_MAP_FILE = path.join(config.classMaps, "client.json");
-const NEW_CSS_PATH = "new";
+const CLASS_MAP_FILE = path.join(config.classMaps, "steamclient.json");
+const NEW_CSS_PATH = "migrated";
 const SELECTOR = /\.([\w-]+)/g;
 
 if (!fs.existsSync(CLASS_MAP_FILE)) {
 	const script = await readScript("build-class-modules");
-	// Most themes are for the client anyway
+	// Most themes using this script are for the Steam client anyway
 	await script.execute("steamclient");
 }
 
@@ -18,10 +18,9 @@ const newFiles: Record<string, string[]> = {};
 const notFound: string[] = [];
 const unsorted: string[] = [];
 
-const classes = JSON.parse(fs.readFileSync(CLASS_MAP_FILE, "utf8")) as Record<
-	string,
-	Record<string, string>
->;
+const classes = JSON.parse(
+	fs.readFileSync(CLASS_MAP_FILE, "utf8"),
+) as ClassModuleMap;
 const modules = Object.keys(classes);
 const keys = modules
 	.map((e) => ({ [e]: Object.keys(classes[e]) }))
@@ -42,7 +41,7 @@ function findReadableClass(name: string): [string, string] {
 	return ["", name];
 }
 
-const processFile: PluginCreator<never> = () => ({
+const processFilePlugin: PluginCreator<never> = () => ({
 	Once(css) {
 		css.walkRules((rule) => {
 			rule.selector = rule.selector.replace(SELECTOR, (_, match) => {
@@ -70,12 +69,15 @@ const processFile: PluginCreator<never> = () => ({
 	},
 	postcssPlugin: "process-file",
 });
-processFile.postcss = true;
+processFilePlugin.postcss = true;
 
 export async function execute() {
-	const files = fs.readdirSync(process.cwd(), { recursive: true }) as string[];
+	const files = fs.readdirSync(process.cwd(), {
+		encoding: "utf8",
+		recursive: true,
+	});
 	for (const file of files.filter((e) => e.endsWith(".css"))) {
-		await postcss([processFile()]).process(readFile(file), {
+		await postcss([processFilePlugin()]).process(fs.readFileSync(file), {
 			from: file,
 		});
 	}

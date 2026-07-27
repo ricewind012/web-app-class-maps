@@ -1,19 +1,18 @@
 #!/usr/bin/env bun
 
-import fs from "node:fs";
 import path from "node:path";
-import { type App, connection, readScript } from "./api.js";
-import { SCRIPT_PATH } from "./constants.js";
+import { type App, connection, readScript, type ScriptFile } from "./api.js";
 import { getArgs } from "./shared.js";
 
 // TODO: migrate doesn't care about this
 const [app, file, arg] = getArgs();
-
 const apps: App[] = ["steam"];
-const files = fs
-	.readdirSync(SCRIPT_PATH)
-	.filter((e) => e.endsWith(".js"))
-	.map((e) => e.replace(".js", ""));
+const files: ScriptFile[] = [
+	"build-class-modules",
+	"make-readable-classes",
+	"migrate",
+	"replace-old-classes",
+];
 if (!apps.some((e) => app === e) || !files.some((e) => file === e)) {
 	console.error("Usage: %s <app> <script>", path.basename(process.argv[1]));
 	console.error("Where <app>:\n%s", apps.map((e) => `- ${e}`).join("\n"));

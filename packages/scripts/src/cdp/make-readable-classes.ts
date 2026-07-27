@@ -4,7 +4,6 @@
 function getNormalClass(className: string) {
 	for (const key of Object.keys(classModules)) {
 		const mod = classModules[key];
-		if (!mod) console.log({ key });
 		const keys = Object.keys(mod);
 		const name = keys.find((e) => mod[e] === className);
 		if (!name) {
