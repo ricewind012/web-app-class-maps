@@ -12,11 +12,29 @@ import {
 } from "../api.js";
 import { createWebConnection, getSteamPageUrl } from "../shared.js";
 
+const EXPRESSIONS = {
+	createBrowserView: (url: string) => `
+		function onFinishedRequest() {
+			window._finished = true;
+			browser.off("${STEAM_BROWSERVIEW_EVENT}", onFinishedRequest);
+		}
+
+		browser = SteamClient.BrowserView.Create();
+		browser.SetVisible(false);
+		browser.LoadURL("${url}");
+		browser.on("${STEAM_BROWSERVIEW_EVENT}", onFinishedRequest);
+	`,
+	finish: `
+		window._finished = false;
+		SteamClient.BrowserView.Destroy(browser);
+	`,
+	isFinished: "window._finished",
+};
+
 /**
  * Steam's BrowserView event to listen for on page load.
  */
 const STEAM_BROWSERVIEW_EVENT = "finished-request";
-
 const STEAM_WEB_SELECTORS: Record<Exclude<Page, "steamclient">, string> = {
 	steamaccountpreferences: "[data-featuretarget]",
 	steamapppage: "[data-featuretarget]",
@@ -26,6 +44,7 @@ const STEAM_WEB_SELECTORS: Record<Exclude<Page, "steamclient">, string> = {
 	steamshoppingcart: "[data-featuretarget='react-root']",
 	steamstoremenu: "[data-featuretarget$='-carousel']",
 };
+const TIMEOUT = 10_000;
 
 async function sleepUntilResult(expression: string, conn?: typeof connection) {
 	while (!(await runWithResult(expression, conn))) {
@@ -47,28 +66,29 @@ async function getWebConn(page: Page) {
 	}
 
 	const { url } = await getSteamPageUrl(page);
-	await run(`
-		function onFinishedRequest() {
-			window._finished = true;
-			browser.off("${STEAM_BROWSERVIEW_EVENT}", onFinishedRequest);
-		}
-
-		browser = SteamClient.BrowserView.Create();
-		browser.LoadURL("${url}");
-		browser.on("${STEAM_BROWSERVIEW_EVENT}", onFinishedRequest);
-	`);
+	await run(EXPRESSIONS.createBrowserView(url));
 
 	console.log("Waiting for page load...");
-	await sleepUntilResult("window._finished");
+	await sleepUntilResult(EXPRESSIONS.isFinished);
 	const conn = await createWebConnection(page).catch((e) => {
-		console.log("%s\nNo page whose URL is %o has been found.", e.message, url);
+		console.error(
+			"%s\nNo page whose URL is %o has been found.",
+			e.message,
+			url,
+		);
 		process.exit(1);
 	});
 
+	const handle = setTimeout(async () => {
+		await run(EXPRESSIONS.finish);
+		console.error("Selector wasn't found after %d seconds", TIMEOUT / 1_000);
+		process.exit(1);
+	}, TIMEOUT);
 	const selector = `${STEAM_WEB_SELECTORS[page]}:not(:empty)`;
 	const expression = `!!document.querySelector("${selector}")`;
 	console.log("Waiting for %o selector...", selector);
 	await sleepUntilResult(expression, conn);
+	clearTimeout(handle);
 
 	return conn;
 }
@@ -110,9 +130,6 @@ export async function execute(page: Page = "steamclient") {
 
 	webConn?.close();
 	if (!isClient) {
-		await run(`
-			window._finished = false;
-			SteamClient.BrowserView.Destroy(browser);
-		`);
+		await run(EXPRESSIONS.finish);
 	}
 }
