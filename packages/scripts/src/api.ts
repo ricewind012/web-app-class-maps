@@ -8,6 +8,12 @@ import { appInfo, createConnection, getArgs } from "./shared.js";
 export type App = "steam";
 
 /**
+ * Types that you can provide as a JavaScript expression.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: Intentional
+type Expression = string | ((...args: any[]) => any);
+
+/**
  * Pages that have an existing class map, excluding `steamclient`.
  */
 export type Page =
@@ -89,12 +95,29 @@ export function readScript(name: ScriptFile): Promise<Script> {
 }
 
 /**
- * Evaluates a JavaScript expression in the active CDP context.
+ * Evaluates a JavaScript expression (string or function) in the active CDP
+ * context. If a function is provided it will be converted to a string and
+ * invoked immediately.
  */
 export function run(
-	expression: string,
+	expr: Expression,
 	conn = connection,
 ): Promise<Protocol.Runtime.EvaluateResponse> {
+	const expression = (() => {
+		if (typeof expr === "string") {
+			return expr;
+		}
+
+		const fn = expr.toString();
+		// Extract the body instead of sending the function as is - it may be a
+		// const arrow function, whose reassignment is forbidden when sent
+		// through CDP
+		const body = fn.slice(fn.indexOf("{") + 1, fn.lastIndexOf("}"));
+		// While you *do* need to await it in the actual console, this isn't
+		// required here
+		return `(async () => { ${body} })()`;
+	})();
+
 	return conn.Runtime.evaluate({
 		awaitPromise: true,
 		expression,
@@ -117,8 +140,8 @@ export function runCdpFile(file: string, conn = connection) {
  * Evaluates a JavaScript expression and returns its resolved value. Only use if
  * certain the expression never fails.
  */
-export async function runWithResult(expression: string, conn = connection) {
-	const resp = await run(expression, conn);
+export async function runWithResult(expr: Expression, conn = connection) {
+	const resp = await run(expr, conn);
 	return resp.result.value;
 }
 
