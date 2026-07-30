@@ -1,14 +1,16 @@
+declare var _preloadExists: boolean;
+
 type InitReq = {
 	m: Record<string, WebpackModule>;
 	(id: string): WebpackModule;
 };
 type WebpackModule = Record<string, string>;
 
-let initReq: InitReq | undefined;
-const webpackCache: Record<string, WebpackModule> = {};
+var initReq: InitReq | undefined;
+var webpackCache: Record<string, WebpackModule> = {};
 // biome-ignore lint/style/noNonNullAssertion: No other way probably
-const webpackGlobal = Object.keys(window).find((e) => e.startsWith("webpack"))!;
-const webpackModules = window[webpackGlobal] as {
+var webpackGlobal = Object.keys(window).find((e) => e.startsWith("webpack"))!;
+var webpackModules = window[webpackGlobal] as {
 	push(chunk: [[number], object, (r: InitReq) => void]): void;
 };
 webpackModules.push([
@@ -27,7 +29,7 @@ for (const i of Object.keys(initReq.m)) {
 }
 
 // Leave only the relevant modules
-const allModules = Object.values<WebpackModule>(webpackCache).filter((e) => {
+var allModules = Object.values<WebpackModule>(webpackCache).filter((e) => {
 	if (!e || typeof e !== "object" || e.__esModule) {
 		return false;
 	}
@@ -66,7 +68,7 @@ function findFirstModule(
 		console.error("[%s] %s", component, msg);
 	};
 
-	if (modules.length === 0) {
+	if (!window._preloadExists && modules.length === 0) {
 		printError("found no modules");
 	}
 	if (modules.length > 1) {

@@ -10,6 +10,7 @@ import {
 	runWithResult,
 	sleep,
 } from "../api.js";
+import { CDP_FILES_PATH } from "../constants.js";
 import { createWebConnection, getSteamPageUrl } from "../shared.js";
 
 const EXPRESSIONS = {
@@ -29,6 +30,8 @@ const EXPRESSIONS = {
 		SteamClient.BrowserView.Destroy(browser);
 	`,
 	isFinished: "window._finished",
+	isPreloadFinished: "window._preloadFinished",
+	setPreloadExists: "window._preloadExists = true",
 };
 
 /**
@@ -36,13 +39,12 @@ const EXPRESSIONS = {
  */
 const STEAM_BROWSERVIEW_EVENT = "finished-request";
 const STEAM_WEB_SELECTORS: Record<Exclude<Page, "steamclient">, string> = {
-	steamaccountpreferences: "[data-featuretarget]",
-	steamapppage: "[data-featuretarget]",
-	steamgameslist: "[data-featuretarget='gameslist-root']",
+	steamaccountpreferences: "[data-featuretarget='family-management']",
+	steamapppage: "[data-featuretarget='appreviews']",
 	steamnotificationspage: "#react_root",
 	steamprofileedit: "#react_root",
 	steamshoppingcart: "[data-featuretarget='react-root']",
-	steamstoremenu: "[data-featuretarget$='-carousel']",
+	steamstoremenu: "[data-featuretarget='store-menu-v7']",
 };
 const TIMEOUT = 10_000;
 
@@ -94,23 +96,34 @@ async function getWebConn(page: Page) {
 }
 
 async function doTheThing(page: Page, conn: typeof connection) {
-	const webpackRan = await runWithResult("!!webpackCache", conn);
-	const forceWebpackRerun = await runWithResult("forceWebpackRerun", conn);
-	if (!webpackRan || forceWebpackRerun) {
+	const writeModules = async () => {
+		await runCdpFile(path.join("db", `${page}.js`), conn);
+		return await runCdpFile("class-modules.js", conn);
+	};
+
+	const preloadPath = path.join("preload", `${page}.js`);
+	const preloadExists = fs.existsSync(path.join(CDP_FILES_PATH, preloadPath));
+	// Don't print "found no modules", since it's gonna be found later
+	if (preloadExists) {
+		await run(EXPRESSIONS.setPreloadExists, conn);
+	}
+	await runCdpFile("class-modules-webpack.js", conn);
+
+	if (preloadExists) {
+		await writeModules();
+		await runCdpFile(preloadPath, conn);
+		await sleepUntilResult(EXPRESSIONS.isPreloadFinished, conn);
+		// Be *entirely* sure the React parts loaded
+		await sleep(1_000);
+		// Second pass to get triggered loaded modules
 		await runCdpFile("class-modules-webpack.js", conn);
 	}
 
-	const preloadFile = path.join("preload", `${page}.js`);
-	if (fs.existsSync(preloadFile)) {
-		await runCdpFile(preloadFile, conn);
-	}
-	await runCdpFile(path.join("db", `${page}.js`), conn);
-
-	const output = await runCdpFile("class-modules.js", conn);
-	const [classModules, allModules] = (await runWithResult(
+	const output = await writeModules();
+	const [classModules, allModules]: [number, number] = await runWithResult(
 		"[Object.keys(classModules).length, allModules.length]",
 		conn,
-	)) as [number, number];
+	);
 
 	const filePath = path.join(config.classMaps, `${page}.json`);
 	const content = await prettier.format(JSON.stringify(output), {

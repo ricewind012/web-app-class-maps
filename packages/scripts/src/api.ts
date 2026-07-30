@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
+import { CDP_FILES_PATH, DEFAULT_CONFIG, SCRIPT_PATH } from "./constants.js";
 import { appInfo, createConnection, getArgs } from "./shared.js";
 
 export type App = "steam";
@@ -56,15 +56,6 @@ export interface Config {
 interface Script {
 	execute(arg?: string): Promise<void>;
 }
-
-const DIST_PATH = path.dirname(fileURLToPath(import.meta.url));
-const CDP_FILES_PATH = path.join(DIST_PATH, "cdp");
-const SCRIPT_PATH = path.join(DIST_PATH, "lib");
-
-const DEFAULT_CONFIG: Config = {
-	classMaps: "class_maps",
-	ignore: [],
-};
 
 export const config: Config = Object.assign(
 	DEFAULT_CONFIG,
