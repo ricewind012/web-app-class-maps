@@ -6,8 +6,6 @@ var exportedModules: ExportedModuleMap = [
 	["familymanagement", (e) => e.FamilySettingsContainer],
 	["familymanagementinvites", (e) => e.IncomingInviteRow],
 	["familymanagementtabs", (e) => e.GraphicalAssetsTabs],
-	// TODO: shared with steam settings notif page
-	["notifications", (e) => e.NotificationSection],
 	// TODO: gamepaddialog
 	["toggle", (e) => e.Field],
 ];

@@ -115,8 +115,6 @@ export async function getSteamPageUrl(page: Page): Promise<SteamPage> {
 				match: new RegExp(`^${STEAM_STORE_BASE_URL}/app/\\d+`),
 				url: `${STEAM_STORE_BASE_URL}/app/666220`,
 			};
-		case "steamgameslist":
-			return pageObj(`${profileUrl}games`);
 		case "steamnotificationspage":
 			return pageObj(`${profileUrl}notifications`);
 		case "steamprofileedit":

@@ -20,7 +20,6 @@ export type Page =
 	| "steamaccountpreferences"
 	| "steamapppage"
 	| "steamclient"
-	| "steamgameslist"
 	| "steamnotificationspage"
 	| "steamprofileedit"
 	| "steamshoppingcart"

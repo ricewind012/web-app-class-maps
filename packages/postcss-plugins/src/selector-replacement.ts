@@ -8,7 +8,6 @@ const PAGES = [
 	"steamaccountpreferences",
 	"steamapppage",
 	"steamclient",
-	"steamgameslist",
 	"steamnotificationspage",
 	"steamprofileedit",
 	"steamshoppingcart",

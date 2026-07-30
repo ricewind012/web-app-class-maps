@@ -1,8 +1,14 @@
 // biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var exportedModules: ExportedModuleMap = [
+	["appreviews", (e) => e.ReviewSummary],
 	["appreviewdetails", (e) => e.ReviewDetails],
-	["appreviews", (e) => e.ReviewSectionTitle],
+	[
+		"appreviewtitle",
+		(e) => e.ReviewSectionTitle && Object.keys(e).length === 1,
+	],
 	// TODO: not found if no broadcast
+	// TODO:
+	// data-featuretarget="broadcast-embed"
 	["broadcastembed", (e) => e.bordered_container],
 	["broadcastlivestreamicon", (e) => e.bordered_live_stream_icon],
 	["capsule", (e) => e.MainCapsuleImageContainer],
@@ -11,7 +17,7 @@ var exportedModules: ExportedModuleMap = [
 	["carousel", (e) => e.pipScrollerContainer],
 	["creatorhome", (e) => e.FollowBtnText],
 	["creatorhomecarousel", (e) => e.CreatorHomeWithItems],
-	["focusring", (e) => e.FocusRingRoot],
+	["focusring", (e) => e.DebugFocusRing],
 	["gamehover", (e) => e.GameHoverCapsuleCtn],
 	["gametheater", (e) => e.TheaterModeHeader],
 	["latestupdates", (e) => e.LatestUpdateButtonCtn],
@@ -23,7 +29,7 @@ var exportedModules: ExportedModuleMap = [
 	["trailerplayershared", (e) => e.PlaybackButton],
 	["trailerplayerstrip", (e) => e.StripScrollbar],
 	["scrollsnapcarousel", (e) => e.ScrollSnapCarousel],
-	["sidebaraccessibilityinfo", (e) => e.FeatureNameContainer],
+	["sidebaraccessibilityinfo", (e) => e.FeatureNameContainer && e.InfoLink],
 	["sidebarcontrollerinfo", (e) => e.StoreSidebarContainer],
 	["storeitemscarousel", (e) => e.StoreItemsCarousel],
 ];

@@ -27,7 +27,6 @@ Note that running the `build-class-modules` and `make-readable-classes` scripts 
 | steamapppage            | Related items & controller info in https://store.steampowered.com/app/666220 |
 | steamaccountpreferences | https://store.steampowered.com/account                                       |
 | steamclient             | The Steam client                                                             |
-| steamgameslist          | https://steamcommunity.com/my/games                                          |
 | steamnotificationspage  | https://steamcommunity.com/my/notifications                                  |
 | steamprofileedit        | https://steamcommunity.com/my/edit                                           |
 | steamshoppingcart       | https://store.steampowered.com/cart                                          |
