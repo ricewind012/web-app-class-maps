@@ -31,24 +31,22 @@ var specialModules: ClassModuleMap = {
 };
 
 /**
- * These are not seen in webpackCache for some reason.
- * TODO: unify with the rest ?
- * TODO: is absence of top-level await a bug ?
- *
- * 674:
- * - bbcodeeditor
- * - bbcodesuggestions
- * - clanimagechooser
- * - clanimagepickandresize
- * - sharewithfriends
+ * Not yet loaded webpack modules. No preload file, because it's easier to parse
+ * them instead.
  */
 (async () => {
 	window.parsedModules = [
 		...(
 			await Promise.all(
-				["674", "awardicon", "broadcast", "gamenotes", "gamerecording"].map(
-					async (e) =>
-						(await fetch(`https://steamloopback.host/${e}.js`)).text(),
+				[
+					"9441",
+					"awardicon",
+					"broadcast",
+					"chunk~1a96cdf59",
+					"gamenotes",
+					"gamerecording",
+				].map(async (e) =>
+					(await fetch(`https://steamloopback.host/${e}.js`)).text(),
 				),
 			)
 		)
@@ -60,30 +58,48 @@ var specialModules: ClassModuleMap = {
 		const keys = Object.keys(mod);
 		const name = (() => {
 			switch (true) {
-				case exists("IconList"):
-					return "awardicon";
+				// 9441
+				// note: this has a linkregionbox module too, and another one
+				// including a DragHighlightContainer class but not in use
 				case exists("DragTarget"):
 					return "bbcodeeditor";
 				case exists("BBCode"):
 					return "bbcodesuggestions";
-				case exists("PopOutVideoTitleBar"):
-					return "broadcastembeddable";
-				case exists("BroadcastPlayerLite"):
-					return "broadcastplayer";
-				case exists("StoreSaleImage_mini"):
-					return "broadcastwidgets";
 				case exists("ImagesOuterContainer"):
 					return "clanimagechooser";
 				case exists("Image") && Object.keys(e).length === 1:
 					return "clanimagepickandresize";
-				case exists("ClipUploadStatus"):
-					return "clipupload";
-				case exists("GameNotesPopup"):
-					return "gamenotespopups";
-				case exists("ClipSavedHint"):
-					return "gamerecordingclip";
+				case exists("CropImage"):
+					return "cropimage";
 				case exists("ShareDescription"):
 					return "sharewithfriends";
+
+				// awardicon
+				case exists("IconList"):
+					return "awardicon";
+
+				// broadcast
+				case exists("PopOutVideoTitleBar"):
+					return "broadcastembeddable";
+				case exists("StoreSaleImage_mini"):
+					return "broadcastwidgets";
+
+				// chunk~1a96cdf59
+				case exists("BroadcastPlayerLite"):
+					return "broadcastplayer";
+				case exists("LinkRegionDragBox"):
+					return "linkregionbox";
+
+				// gamenotes
+				case exists("GameNotesPopup"):
+					return "gamenotespopups";
+
+				// gamerecording
+				case exists("ClipUploadStatus"):
+					return "clipupload";
+				case exists("ClipSavedHint"):
+					return "gamerecordingclip";
+
 				default:
 					return "exists to satisfy typescript";
 			}
