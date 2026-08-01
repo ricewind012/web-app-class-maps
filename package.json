@@ -1,10 +1,10 @@
 {
 	"name": "web-app-class-maps",
 	"version": "0.9.9",
-	"workspaces": [
-		"packages/*"
-	],
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.3"
-	}
+	},
+	"workspaces": [
+		"packages/*"
+	]
 }

@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"rootDir": "..",
+		"skipLibCheck": true,
+		"strictNullChecks": false,
+		"types": ["bun", "node"]
+	},
+	"include": ["../src/api.ts", "./*"]
+}
