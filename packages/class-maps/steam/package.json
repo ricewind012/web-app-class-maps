@@ -1,0 +1,18 @@
+{
+	"name": "@web-app-class-maps/steam",
+	"version": "0.9.9",
+	"description": "Steam class maps for web-app-class-maps",
+	"type": "module",
+	"exports": {
+		"./client": "./steamclient.json",
+		"./notificationspage": "./steamnotificationspage.json",
+		"./profileedit": "./steamprofileedit.json",
+		"./shoppingcart": "./steamshoppingcart.json"
+	},
+	"files": [
+		"steamclient.json",
+		"steamnotificationspage.json",
+		"steamprofileedit.json",
+		"steamshoppingcart.json"
+	]
+}

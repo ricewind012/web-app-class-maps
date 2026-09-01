@@ -57,6 +57,8 @@ interface Script {
 	execute(arg?: string): Promise<void>;
 }
 
+const classMap: Record<string, Record<string, string>> = {};
+
 export const config: Config = Object.assign(
 	DEFAULT_CONFIG,
 	(await lilconfig("web-app-class-maps").search())?.config || {},
@@ -76,6 +78,23 @@ export const connection = await (() => {
 		process.exit(1);
 	});
 })();
+
+/**
+ * Gets a class map on demand rather than reading all files at once.
+ */
+export function getClassMap(page: Page) {
+	if (classMap[page]) {
+		return classMap[page];
+	}
+
+	const pagePath = path.join(config.classMaps, `${page}.json`);
+	if (!fs.existsSync(pagePath)) {
+		return;
+	}
+
+	classMap[page] = JSON.parse(fs.readFileSync(pagePath, "utf8"));
+	return classMap[page];
+}
 
 /**
  * Loads a script by its name.
