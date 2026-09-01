@@ -82,17 +82,18 @@ export const connection = await (() => {
 /**
  * Gets a class map on demand rather than reading all files at once.
  */
-export function getClassMap(page: Page) {
+export async function getClassMap(page: Page) {
 	if (classMap[page]) {
 		return classMap[page];
 	}
 
-	const pagePath = path.join(config.classMaps, `${page}.json`);
-	if (!fs.existsSync(pagePath)) {
-		return;
-	}
+	const name = `@web-app-class-maps/class-maps/${page}`;
+	const pkg = await import(name).catch((e) => {
+		console.error(e);
+		process.exit(1);
+	});
 
-	classMap[page] = JSON.parse(fs.readFileSync(pagePath, "utf8"));
+	classMap[page] = pkg;
 	return classMap[page];
 }
 

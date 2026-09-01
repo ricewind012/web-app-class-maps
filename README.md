@@ -9,7 +9,9 @@ $ bun i @web-app-class-maps/scripts
 $ bun x @web-app-class-maps/scripts <app> <script> <page>
 ```
 
-Note that running the `build-class-modules` and `make-readable-classes` scripts in Steam require the app running with the `-cef-enable-debugging` launch option, or with Millennium and the `-dev` launch option.
+> [!NOTE]
+> In order for the scripts to be usable, you will also have to install the
+> `@web-app-class-maps/class-maps` package.
 
 ## Scripts
 
@@ -19,6 +21,11 @@ Note that running the `build-class-modules` and `make-readable-classes` scripts 
 | make-readable-classes | Adds readable versions of classes to the focused window/page. ![Preview][classes-preview]                                                  |
 | migrate               | _Try to_ migrate to using readable class names. Other rules that can't be sorted/found go in `_UNSORTED.css`/`_NOTFOUND.css` respectively. |
 | replace-old-classes   | Replaces old classes with new ones for themes not using the [template][template].                                                          |
+
+> [!NOTE]
+> Running the `build-class-modules` and `make-readable-classes` scripts in Steam
+> require the app running with the `-cef-enable-debugging` launch option, or
+> with Millennium and the `-dev` launch option.
 
 ## Pages
 

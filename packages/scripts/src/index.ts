@@ -1,8 +1,17 @@
 #!/usr/bin/env bun
 
 import path from "node:path";
-import { type App, connection, readScript, type ScriptFile } from "./api.js";
+import {
+	type App,
+	connection,
+	getClassMap,
+	readScript,
+	type ScriptFile,
+} from "./api.js";
 import { getArgs } from "./shared.js";
+
+await getClassMap("steamshoppingcart");
+process.exit();
 
 // TODO: migrate doesn't care about this
 const [app, file, arg] = getArgs();
