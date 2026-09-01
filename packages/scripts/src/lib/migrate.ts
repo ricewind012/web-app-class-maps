@@ -1,30 +1,19 @@
 import fs from "node:fs";
 import path from "node:path";
 import postcss, { type PluginCreator } from "postcss";
-import { config, readScript } from "../api.js";
+import { config, type Page, readScript } from "../api.js";
 import type { ClassModuleMap } from "../shared.js";
 
-const CLASS_MAP_FILE = path.join(config.classMaps, "steamclient.json");
 const NEW_CSS_PATH = "migrated";
 const SELECTOR = /\.([\w-]+)/g;
-
-if (!fs.existsSync(CLASS_MAP_FILE)) {
-	const script = await readScript("build-class-modules");
-	// Most themes using this script are for the Steam client anyway
-	await script.execute("steamclient");
-}
 
 const newFiles: Record<string, string[]> = {};
 const notFound: string[] = [];
 const unsorted: string[] = [];
 
-const classes = JSON.parse(
-	fs.readFileSync(CLASS_MAP_FILE, "utf8"),
-) as ClassModuleMap;
-const modules = Object.keys(classes);
-const keys = modules
-	.map((e) => ({ [e]: Object.keys(classes[e]) }))
-	.reduce((a, b) => Object.assign(a, b));
+let classes: ClassModuleMap;
+let modules: string[];
+let keys: Record<string, string[]>;
 
 /**
  * @param {string} name Obfuscated class name.
@@ -71,7 +60,19 @@ const processFilePlugin: PluginCreator<never> = () => ({
 });
 processFilePlugin.postcss = true;
 
-export async function execute() {
+export async function execute(page: Page) {
+	const classMapFile = path.join(config.classMaps, `${page}.json`);
+	if (!fs.existsSync(classMapFile)) {
+		const script = await readScript("build-class-modules");
+		await script.execute(page);
+	}
+
+	classes = JSON.parse(fs.readFileSync(classMapFile, "utf8"));
+	modules = Object.keys(classes);
+	keys = modules
+		.map((e) => ({ [e]: Object.keys(classes[e]) }))
+		.reduce((a, b) => Object.assign(a, b));
+
 	const files = fs.readdirSync(process.cwd(), {
 		encoding: "utf8",
 		recursive: true,

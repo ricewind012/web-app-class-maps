@@ -4,6 +4,7 @@ import postcss, { type PluginCreator } from "postcss";
 import { config } from "../api.js";
 import type { ClassModuleMap } from "../shared.js";
 
+// This is pretty much a Steam-exclusive practice either way
 const CLASS_MAP_FILE = path.join(config.classMaps, "client.json");
 const OLD_CLASS_MAP_FILE = path.join(config.classMaps, "client_old.json");
 const SELECTOR = /\.([\w-]+)/g;
