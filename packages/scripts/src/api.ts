@@ -36,9 +36,9 @@ export type ScriptFile =
 
 export interface Config {
 	/**
-	 * Path of built class maps.
+	 * Path of cached class maps.
 	 */
-	classMaps: string;
+	classMapsPath: string;
 
 	/**
 	 * Directories for the postcss plugin to ignore.
@@ -87,13 +87,31 @@ export async function getClassMap(page: Page) {
 		return classMap[page];
 	}
 
-	const name = `@web-app-class-maps/class-maps/${page}`;
-	const pkg = await import(name).catch((e) => {
-		console.error(e);
-		process.exit(1);
-	});
+	const cachePath = path.join(config.classMapsPath, `${page}.json`);
+	if (fs.existsSync(cachePath)) {
+		const DAY_MSEC = 86_400_000;
+		const { mtimeMs } = fs.statSync(cachePath);
+		if (Date.now() - mtimeMs < DAY_MSEC) {
+			classMap[page] = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+			return classMap[page];
+		}
+	}
 
-	classMap[page] = pkg;
+	const url = `https://raw.githubusercontent.com/ricewind012/web-app-class-maps/refs/heads/data/${page}.json`;
+	const resp = await fetch(url);
+	if (!resp.ok) {
+		console.error(
+			`Fetching ${url} got status code ${resp.status}: ${resp.statusText}`,
+		);
+		process.exit(1);
+	}
+
+	const text = JSON.parse(await resp.text());
+	// Cache for 24 hours so I don't fetch it all the time...
+	fs.mkdirSync(config.classMapsPath, { recursive: true });
+	fs.writeFileSync(cachePath, JSON.stringify(text));
+
+	classMap[page] = text;
 	return classMap[page];
 }
 

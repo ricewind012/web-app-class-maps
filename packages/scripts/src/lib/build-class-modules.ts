@@ -125,11 +125,11 @@ async function doTheThing(page: Page, conn: typeof connection) {
 		conn,
 	);
 
-	const filePath = path.join(config.classMaps, `${page}.json`);
+	const filePath = path.join(config.classMapsPath, `${page}.json`);
 	const content = await prettier.format(JSON.stringify(output), {
 		parser: "json-stringify",
 	});
-	fs.mkdirSync(config.classMaps, { recursive: true });
+	fs.mkdirSync(config.classMapsPath, { recursive: true });
 	fs.writeFileSync(filePath, content);
 	console.log("Wrote %s/%s modules to %o", classModules, allModules, filePath);
 }

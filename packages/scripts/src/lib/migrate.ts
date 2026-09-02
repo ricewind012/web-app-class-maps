@@ -62,7 +62,7 @@ processFilePlugin.postcss = true;
 
 export async function execute(page: Page) {
 	// TODO
-	const classMapFile = path.join(config.classMaps, `${page}.json`);
+	const classMapFile = path.join(config.classMapsPath, `${page}.json`);
 	if (!fs.existsSync(classMapFile)) {
 		const script = await readScript("build-class-modules");
 		await script.execute(page);
