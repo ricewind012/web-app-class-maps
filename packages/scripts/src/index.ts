@@ -5,17 +5,17 @@ import {
 	type App,
 	connection,
 	getClassMap,
+	type Page,
 	readScript,
 	type ScriptFile,
 } from "./api.js";
 import { getArgs } from "./shared.js";
 
-await getClassMap("steamshoppingcart");
-process.exit();
-
 // TODO: migrate doesn't care about this
 const [app, file, arg] = getArgs();
 const apps: App[] = ["steam"];
+await getClassMap(arg as Page);
+process.exit();
 const files: ScriptFile[] = [
 	"build-class-modules",
 	"make-readable-classes",
