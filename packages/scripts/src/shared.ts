@@ -1,3 +1,5 @@
+import os from "node:os";
+import path from "node:path";
 import type CDP from "chrome-remote-interface";
 import cdp from "chrome-remote-interface";
 import type ProcessInfo from "find-process";
@@ -35,6 +37,19 @@ export const appInfo: Record<App, AppInfo> = {
 		processName: "steamwebhelper",
 	},
 };
+
+const cacheDir = (() => {
+	const home = os.homedir();
+	switch (process.platform) {
+		case "win32":
+			return process.env.LOCALAPPDATA || path.join(home, "AppData", "Local");
+		case "darwin":
+			return path.join(home, "Library", "Caches");
+		default:
+			return process.env.XDG_CACHE_HOME || path.join(home, ".cache");
+	}
+})();
+export const cachePath = path.join(cacheDir, "web-app-class-maps");
 
 /**
  * Creates a CDP connection for a given target.

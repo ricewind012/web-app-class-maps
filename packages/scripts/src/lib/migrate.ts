@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import postcss, { type PluginCreator } from "postcss";
-import { config, type Page, readScript } from "../api.js";
+import { getClassMap, type Page } from "../api.js";
 import type { ClassModuleMap } from "../shared.js";
 
 const NEW_CSS_PATH = "migrated";
@@ -61,14 +61,9 @@ const processFilePlugin: PluginCreator<never> = () => ({
 processFilePlugin.postcss = true;
 
 export async function execute(page: Page) {
-	// TODO
-	const classMapFile = path.join(config.classMapsPath, `${page}.json`);
-	if (!fs.existsSync(classMapFile)) {
-		const script = await readScript("build-class-modules");
-		await script.execute(page);
-	}
+	const classMap = await getClassMap(page);
 
-	classes = JSON.parse(fs.readFileSync(classMapFile, "utf8"));
+	classes = classMap;
 	modules = Object.keys(classes);
 	keys = modules
 		.map((e) => ({ [e]: Object.keys(classes[e]) }))

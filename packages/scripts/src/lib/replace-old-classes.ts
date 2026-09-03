@@ -1,12 +1,10 @@
 import fs from "node:fs";
-import path from "node:path";
 import postcss, { type PluginCreator } from "postcss";
-import { config } from "../api.js";
 import type { ClassModuleMap } from "../shared.js";
 
 // This is pretty much a Steam-exclusive practice either way
-const CLASS_MAP_FILE = path.join(config.classMapsPath, "client.json");
-const OLD_CLASS_MAP_FILE = path.join(config.classMapsPath, "client_old.json");
+const CLASS_MAP_FILE = "client.json";
+const OLD_CLASS_MAP_FILE = "client_old.json";
 const SELECTOR = /\.([\w-]+)/g;
 
 if ([CLASS_MAP_FILE, OLD_CLASS_MAP_FILE].some((e) => !fs.existsSync(e))) {

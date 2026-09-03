@@ -3,7 +3,13 @@ import path from "node:path";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
 import { CDP_FILES_PATH, DEFAULT_CONFIG, SCRIPT_PATH } from "./constants.js";
-import { appInfo, createConnection, getArgs } from "./shared.js";
+import {
+	appInfo,
+	type ClassModuleMap,
+	cachePath,
+	createConnection,
+	getArgs,
+} from "./shared.js";
 
 export type App = "steam";
 
@@ -36,11 +42,6 @@ export type ScriptFile =
 
 export interface Config {
 	/**
-	 * Path of cached class maps.
-	 */
-	classMapsPath: string;
-
-	/**
 	 * Directories for the postcss plugin to ignore.
 	 *
 	 * For example:
@@ -57,7 +58,7 @@ interface Script {
 	execute(arg?: string): Promise<void>;
 }
 
-const classMap: Record<string, Record<string, string>> = {};
+const classMap: Partial<Record<Page, ClassModuleMap>> = {};
 
 export const config: Config = Object.assign(
 	DEFAULT_CONFIG,
@@ -87,12 +88,12 @@ export async function getClassMap(page: Page) {
 		return classMap[page];
 	}
 
-	const cachePath = path.join(config.classMapsPath, `${page}.json`);
-	if (fs.existsSync(cachePath)) {
+	const cacheFilePath = path.join(cachePath, `${page}.json`);
+	if (fs.existsSync(cacheFilePath)) {
 		const DAY_MSEC = 86_400_000;
-		const { mtimeMs } = fs.statSync(cachePath);
+		const { mtimeMs } = fs.statSync(cacheFilePath);
 		if (Date.now() - mtimeMs < DAY_MSEC) {
-			classMap[page] = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+			classMap[page] = JSON.parse(fs.readFileSync(cacheFilePath, "utf8"));
 			return classMap[page];
 		}
 	}
@@ -108,8 +109,8 @@ export async function getClassMap(page: Page) {
 
 	const text = JSON.parse(await resp.text());
 	// Cache for 24 hours so I don't fetch it all the time...
-	fs.mkdirSync(config.classMapsPath, { recursive: true });
-	fs.writeFileSync(cachePath, JSON.stringify(text));
+	fs.mkdirSync(cachePath, { recursive: true });
+	fs.writeFileSync(cacheFilePath, JSON.stringify(text));
 
 	classMap[page] = text;
 	return classMap[page];
