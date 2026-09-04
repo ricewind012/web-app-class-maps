@@ -1,5 +1,5 @@
 import { describe, expect, it, test } from "bun:test";
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { after } from "node:test";
 import type { Page } from "../src/api.ts";
@@ -24,18 +24,18 @@ describe("getClassMap", () => {
 	// Isolate `getClassMap` from the network
 	const originalFetch = globalThis.fetch;
 
-	after(() => {
+	after(async () => {
 		Object.defineProperty(globalThis, "fetch", {
 			configurable: true,
 			value: originalFetch,
 		});
-		fs.rmSync(cacheFilePath, { force: true });
+		await fs.rm(cacheFilePath, { force: true });
 	});
 
 	it("fetches and caches a class map", async () => {
 		const fetchCalls: string[] = [];
 
-		fs.rmSync(cacheFilePath, { force: true });
+		await fs.rm(cacheFilePath, { force: true });
 		Object.defineProperty(globalThis, "fetch", {
 			configurable: true,
 			value: async (input: URL | RequestInfo) => {
@@ -49,14 +49,14 @@ describe("getClassMap", () => {
 		// cache, doesn't push to fetchCalls
 		expect(await getClassMap(page)).toEqual(classMap);
 		expect(fetchCalls).toEqual([`${CLASS_MAP_URL_PART}/${page}.json`]);
-		expect(JSON.parse(fs.readFileSync(cacheFilePath, "utf8"))).toEqual(
+		expect(JSON.parse(await fs.readFile(cacheFilePath, "utf8"))).toEqual(
 			classMap,
 		);
 	});
 
 	it("reads a fresh class map from disk cache", async () => {
-		fs.mkdirSync(cachePath, { recursive: true });
-		fs.writeFileSync(cacheFilePath, JSON.stringify(classMap));
+		await fs.mkdir(cachePath, { recursive: true });
+		await fs.writeFile(cacheFilePath, JSON.stringify(classMap));
 		Object.defineProperty(globalThis, "fetch", {
 			configurable: true,
 			value: async () => {

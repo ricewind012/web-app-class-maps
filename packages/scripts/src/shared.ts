@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type CDP from "chrome-remote-interface";
@@ -98,6 +99,19 @@ export async function createWebConnection(page: Page) {
 	);
 
 	return connection;
+}
+
+/**
+ * @returns `true` if the file exists.
+ */
+export async function fileExists(path: string) {
+	const { F_OK, R_OK, W_OK } = fs.constants;
+	try {
+		await fs.access(path, F_OK | R_OK | W_OK);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 /**

@@ -1,13 +1,13 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import postcss, { type PluginCreator } from "postcss";
-import type { ClassModuleMap } from "../shared.js";
+import { type ClassModuleMap, fileExists } from "../shared.js";
 
 // This is pretty much a Steam-exclusive practice either way
 const CLASS_MAP_FILE = "client.json";
 const OLD_CLASS_MAP_FILE = "client_old.json";
 const SELECTOR = /\.([\w-]+)/g;
 
-if ([CLASS_MAP_FILE, OLD_CLASS_MAP_FILE].some((e) => !fs.existsSync(e))) {
+if ([CLASS_MAP_FILE, OLD_CLASS_MAP_FILE].some((e) => !fileExists(e))) {
 	console.log("Usage:");
 	console.log(
 		"1. Run %o on stable Steam.",
@@ -37,10 +37,10 @@ selectorReplacerPlugin.postcss = true;
 
 const cwd = process.cwd();
 const oldClasses = JSON.parse(
-	fs.readFileSync(OLD_CLASS_MAP_FILE, "utf8"),
+	await fs.readFile(OLD_CLASS_MAP_FILE, "utf8"),
 ) as ClassModuleMap;
 const newClasses = JSON.parse(
-	fs.readFileSync(CLASS_MAP_FILE, "utf8"),
+	await fs.readFile(CLASS_MAP_FILE, "utf8"),
 ) as ClassModuleMap;
 const modules = Object.keys(oldClasses);
 const keys = modules
@@ -66,7 +66,7 @@ function findNewClassFromOld(oldName: string): string {
 }
 
 export async function execute() {
-	const files = fs.readdirSync(cwd, { encoding: "utf8", recursive: true });
+	const files = await fs.readdir(cwd, { encoding: "utf8", recursive: true });
 	for (const file of files.filter((e) => e.endsWith(".css"))) {
 		postcss([
 			selectorReplacerPlugin({
@@ -74,11 +74,11 @@ export async function execute() {
 				replace: (_, s) => findNewClassFromOld(s),
 			}),
 		])
-			.process(fs.readFileSync(file), {
+			.process(await fs.readFile(file), {
 				from: file,
 			})
-			.then(({ css }) => {
-				fs.writeFileSync(file, css);
+			.then(async ({ css }) => {
+				await fs.writeFile(file, css);
 				console.log("[%s] done", file);
 			});
 	}

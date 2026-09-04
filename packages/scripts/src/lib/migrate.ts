@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import postcss, { type PluginCreator } from "postcss";
 import { getClassMap, type Page } from "../api.js";
@@ -69,28 +69,28 @@ export async function execute(page: Page) {
 		.map((e) => ({ [e]: Object.keys(classes[e]) }))
 		.reduce((a, b) => Object.assign(a, b));
 
-	const files = fs.readdirSync(process.cwd(), {
+	const files = await fs.readdir(process.cwd(), {
 		encoding: "utf8",
 		recursive: true,
 	});
 	for (const file of files.filter((e) => e.endsWith(".css"))) {
-		await postcss([processFilePlugin()]).process(fs.readFileSync(file), {
+		await postcss([processFilePlugin()]).process(await fs.readFile(file), {
 			from: file,
 		});
 	}
 
-	fs.mkdirSync(NEW_CSS_PATH, { recursive: true });
+	await fs.mkdir(NEW_CSS_PATH, { recursive: true });
 	for (const mod of Object.keys(newFiles)) {
-		fs.writeFileSync(
+		await fs.writeFile(
 			path.join(NEW_CSS_PATH, `${mod}.css`),
 			newFiles[mod].join("\n\n"),
 		);
 	}
-	fs.writeFileSync(
+	await fs.writeFile(
 		path.join(NEW_CSS_PATH, "_NOTFOUND.css"),
 		notFound.join("\n\n"),
 	);
-	fs.writeFileSync(
+	await fs.writeFile(
 		path.join(NEW_CSS_PATH, "_UNSORTED.css"),
 		unsorted.join("\n\n"),
 	);

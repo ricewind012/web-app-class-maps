@@ -1,10 +1,15 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import prettier from "prettier";
 import type { Page } from "../api.js";
 import { connection, run, runCdpFile, runWithResult, sleep } from "../api.js";
 import { CDP_FILES_PATH } from "../constants.js";
-import { cachePath, createWebConnection, getSteamPageUrl } from "../shared.js";
+import {
+	cachePath,
+	createWebConnection,
+	fileExists,
+	getSteamPageUrl,
+} from "../shared.js";
 
 const EXPRESSIONS = {
 	createBrowserView: (url: string) => `
@@ -95,7 +100,7 @@ async function doTheThing(page: Page, conn: typeof connection) {
 	};
 
 	const preloadPath = path.join("preload", `${page}.js`);
-	const preloadExists = fs.existsSync(path.join(CDP_FILES_PATH, preloadPath));
+	const preloadExists = fileExists(path.join(CDP_FILES_PATH, preloadPath));
 	// Don't print "found no modules", since it's gonna be found later
 	if (preloadExists) {
 		await run(EXPRESSIONS.setPreloadExists, conn);
@@ -122,8 +127,8 @@ async function doTheThing(page: Page, conn: typeof connection) {
 	const content = await prettier.format(JSON.stringify(output), {
 		parser: "json-stringify",
 	});
-	fs.mkdirSync(cachePath, { recursive: true });
-	fs.writeFileSync(filePath, content);
+	await fs.mkdir(cachePath, { recursive: true });
+	await fs.writeFile(filePath, content);
 	console.log("Wrote %s/%s modules to %o", classModules, allModules, filePath);
 }
 

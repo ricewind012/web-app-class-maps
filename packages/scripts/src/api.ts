@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
@@ -93,17 +93,15 @@ export async function getClassMap(page: Page) {
 		return classMaps.get(page);
 	}
 
+	const DAY_MSEC = 86_400_000;
 	const cacheFilePath = path.join(cachePath, `${page}.json`);
-	if (fs.existsSync(cacheFilePath)) {
-		const DAY_MSEC = 86_400_000;
-		const { mtimeMs } = fs.statSync(cacheFilePath);
-		if (Date.now() - mtimeMs < DAY_MSEC) {
-			const value: ClassModuleMap = JSON.parse(
-				fs.readFileSync(cacheFilePath, "utf8"),
-			);
-			classMaps.set(page, value);
-			return value;
-		}
+	const stat = await fs.stat(cacheFilePath).catch(() => {});
+	if (stat && Date.now() - stat.mtimeMs < DAY_MSEC) {
+		const value: ClassModuleMap = JSON.parse(
+			await fs.readFile(cacheFilePath, "utf8"),
+		);
+		classMaps.set(page, value);
+		return value;
 	}
 
 	const url = `${CLASS_MAP_URL_PART}/${page}.json`;
@@ -117,8 +115,8 @@ export async function getClassMap(page: Page) {
 
 	const value: ClassModuleMap = JSON.parse(await resp.text());
 	// Cache for 24 hours so I don't fetch it all the time...
-	fs.mkdirSync(cachePath, { recursive: true });
-	fs.writeFileSync(cacheFilePath, JSON.stringify(value));
+	await fs.mkdir(cachePath, { recursive: true });
+	await fs.writeFile(cacheFilePath, JSON.stringify(value));
 	classMaps.set(page, value);
 	return value;
 }
@@ -165,9 +163,9 @@ export function run(
  * Reads and evaluates a helper script from the `cdp` directory and returns its
  * resolved value.
  */
-export function runCdpFile(file: string, conn = connection) {
+export async function runCdpFile(file: string, conn = connection) {
 	return runWithResult(
-		fs.readFileSync(path.join(CDP_FILES_PATH, file), "utf8"),
+		await fs.readFile(path.join(CDP_FILES_PATH, file), "utf8"),
 		conn,
 	);
 }
