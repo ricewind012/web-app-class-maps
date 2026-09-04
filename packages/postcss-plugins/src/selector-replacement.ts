@@ -1,10 +1,9 @@
-import fs from "node:fs";
 import path from "node:path";
-import { config } from "@web-app-class-maps/scripts";
+import { config, getClassMap, type Page } from "@web-app-class-maps/scripts";
 import type { PluginCreator } from "postcss";
 import yargs from "yargs";
 
-const PAGES = [
+const PAGES: Page[] = [
 	"steamaccountpreferences",
 	"steamapppage",
 	"steamclient",
@@ -22,27 +21,9 @@ const argv = yargs(process.argv)
 	.options({ base: { type: "string" } })
 	.parseSync();
 const cwd = process.cwd();
-const classMap: Record<string, Record<string, string>> = {};
-
-/**
- * Gets a class map on demand rather than reading all files at once.
- */
-function getClassMap(page: string) {
-	if (classMap[page]) {
-		return classMap[page];
-	}
-
-	const pagePath = path.join(config.classMaps, `${page}.json`);
-	if (!fs.existsSync(pagePath)) {
-		return;
-	}
-
-	classMap[page] = JSON.parse(fs.readFileSync(pagePath, "utf8"));
-	return classMap[page];
-}
 
 export const selectorReplacementPlugin: PluginCreator<never> = () => ({
-	Once(css) {
+	async Once(css) {
 		const { file } = css.source.input;
 		const fileName = path.basename(file);
 
@@ -51,14 +32,15 @@ export const selectorReplacementPlugin: PluginCreator<never> = () => ({
 		// consistent with others in the future, i.e. for Steam it can be
 		// "src/steam/web/apppage", "src/steam/client", for Discord just
 		// "src/discord", etc.
-		const page = splitPath.find((e) => PAGES.includes(e));
+		const page = splitPath.find((e): e is Page => PAGES.includes(e as Page));
 		const steamPage = splitPath.find((e) => STEAM_PAGES.has(e));
-		const resolvedPage = page ?? (steamPage ? `steam${steamPage}` : undefined);
+		const resolvedPage = (page ??
+			(steamPage ? (`steam${steamPage}` as Page) : undefined)) as Page;
 		if (!resolvedPage) {
 			return;
 		}
 
-		const map = getClassMap(resolvedPage);
+		const map = await getClassMap(resolvedPage);
 		if (!map) {
 			console.error("[%s] no such map", resolvedPage);
 			return;

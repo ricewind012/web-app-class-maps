@@ -1,0 +1,38 @@
+#!/usr/bin/env bun
+
+import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import path from "node:path";
+import { type Page, readScript } from "../packages/scripts/dist/api";
+
+const PAGES: Page[] = [
+	"steamaccountpreferences",
+	"steamapppage",
+	"steamclient",
+	"steamnotificationspage",
+	"steamprofileedit",
+	"steamshoppingcart",
+	"steamstoremenu",
+];
+
+const cachePath = process.env.XDG_CACHE_HOME || path.join(homedir(), ".cache");
+
+/**
+ * TODO: Temp fix while `build-class-modules` is still unreliable.
+ */
+async function isMapEmpty(page: Page) {
+	const filePath = path.join(cachePath, "web-app-class-maps", `${page}.json`);
+	const content = JSON.parse(
+		await readFile(filePath, "utf8").catch(() => "{}"),
+	);
+	return Object.keys(content).length === 0;
+}
+
+const script = await readScript("build-class-modules");
+for (const page of PAGES) {
+	console.log(`\n${page}: `);
+	await script.execute(page).catch(() => {});
+	while (await isMapEmpty(page)) {
+		await script.execute(page).catch(() => {});
+	}
+}

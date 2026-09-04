@@ -2,8 +2,19 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
-import { CDP_FILES_PATH, DEFAULT_CONFIG, SCRIPT_PATH } from "./constants.js";
-import { appInfo, createConnection, getArgs } from "./shared.js";
+import {
+	CDP_FILES_PATH,
+	CLASS_MAP_URL_PART,
+	DEFAULT_CONFIG,
+	SCRIPT_PATH,
+} from "./constants.js";
+import {
+	appInfo,
+	type ClassModuleMap,
+	cachePath,
+	createConnection,
+	getArgs,
+} from "./shared.js";
 
 export type App = "steam";
 
@@ -36,11 +47,6 @@ export type ScriptFile =
 
 export interface Config {
 	/**
-	 * Path of built class maps.
-	 */
-	classMaps: string;
-
-	/**
 	 * Directories for the postcss plugin to ignore.
 	 *
 	 * For example:
@@ -56,6 +62,8 @@ export interface Config {
 interface Script {
 	execute(arg?: string): Promise<void>;
 }
+
+const classMaps = new Map<Page, ClassModuleMap>();
 
 export const config: Config = Object.assign(
 	DEFAULT_CONFIG,
@@ -76,6 +84,44 @@ export const connection = await (() => {
 		process.exit(1);
 	});
 })();
+
+/**
+ * Gets a class map. Downloads it if not yet cached.
+ */
+export async function getClassMap(page: Page) {
+	if (classMaps.has(page)) {
+		return classMaps.get(page);
+	}
+
+	const cacheFilePath = path.join(cachePath, `${page}.json`);
+	if (fs.existsSync(cacheFilePath)) {
+		const DAY_MSEC = 86_400_000;
+		const { mtimeMs } = fs.statSync(cacheFilePath);
+		if (Date.now() - mtimeMs < DAY_MSEC) {
+			const value: ClassModuleMap = JSON.parse(
+				fs.readFileSync(cacheFilePath, "utf8"),
+			);
+			classMaps.set(page, value);
+			return value;
+		}
+	}
+
+	const url = `${CLASS_MAP_URL_PART}/${page}.json`;
+	const resp = await fetch(url);
+	if (!resp.ok) {
+		console.error(
+			`Fetching ${url} got status code ${resp.status}: ${resp.statusText}`,
+		);
+		process.exit(1);
+	}
+
+	const value: ClassModuleMap = JSON.parse(await resp.text());
+	// Cache for 24 hours so I don't fetch it all the time...
+	fs.mkdirSync(cachePath, { recursive: true });
+	fs.writeFileSync(cacheFilePath, JSON.stringify(value));
+	classMaps.set(page, value);
+	return value;
+}
 
 /**
  * Loads a script by its name.

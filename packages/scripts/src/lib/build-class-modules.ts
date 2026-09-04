@@ -2,16 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import prettier from "prettier";
 import type { Page } from "../api.js";
-import {
-	config,
-	connection,
-	run,
-	runCdpFile,
-	runWithResult,
-	sleep,
-} from "../api.js";
+import { connection, run, runCdpFile, runWithResult, sleep } from "../api.js";
 import { CDP_FILES_PATH } from "../constants.js";
-import { createWebConnection, getSteamPageUrl } from "../shared.js";
+import { cachePath, createWebConnection, getSteamPageUrl } from "../shared.js";
 
 const EXPRESSIONS = {
 	createBrowserView: (url: string) => `
@@ -125,11 +118,11 @@ async function doTheThing(page: Page, conn: typeof connection) {
 		conn,
 	);
 
-	const filePath = path.join(config.classMaps, `${page}.json`);
+	const filePath = path.join(cachePath, `${page}.json`);
 	const content = await prettier.format(JSON.stringify(output), {
 		parser: "json-stringify",
 	});
-	fs.mkdirSync(config.classMaps, { recursive: true });
+	fs.mkdirSync(cachePath, { recursive: true });
 	fs.writeFileSync(filePath, content);
 	console.log("Wrote %s/%s modules to %o", classModules, allModules, filePath);
 }
