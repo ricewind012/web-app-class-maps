@@ -2,7 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
-import { CDP_FILES_PATH, DEFAULT_CONFIG, SCRIPT_PATH } from "./constants.js";
+import {
+	CDP_FILES_PATH,
+	CLASS_MAP_URL_PART,
+	DEFAULT_CONFIG,
+	SCRIPT_PATH,
+} from "./constants.js";
 import {
 	appInfo,
 	type ClassModuleMap,
@@ -100,7 +105,7 @@ export async function getClassMap(page: Page) {
 		}
 	}
 
-	const url = `https://raw.githubusercontent.com/ricewind012/web-app-class-maps/refs/heads/data/${page}.json`;
+	const url = `${CLASS_MAP_URL_PART}/${page}.json`;
 	const resp = await fetch(url);
 	if (!resp.ok) {
 		console.error(
