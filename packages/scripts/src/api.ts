@@ -58,7 +58,7 @@ interface Script {
 	execute(arg?: string): Promise<void>;
 }
 
-const classMap: Partial<Record<Page, ClassModuleMap>> = {};
+const classMaps = new Map<Page, ClassModuleMap>();
 
 export const config: Config = Object.assign(
 	DEFAULT_CONFIG,
@@ -67,6 +67,7 @@ export const config: Config = Object.assign(
 
 export const connection = await (() => {
 	// postcss-cli hangs because of cdp
+	console.log(process.argv);
 	const isPostcss = path.basename(process.argv[1]) === "postcss";
 	if (isPostcss) {
 		return;
@@ -84,8 +85,8 @@ export const connection = await (() => {
  * Gets a class map on demand rather than reading all files at once.
  */
 export async function getClassMap(page: Page) {
-	if (classMap[page]) {
-		return classMap[page];
+	if (classMaps.has(page)) {
+		return classMaps.get(page);
 	}
 
 	const cacheFilePath = path.join(cachePath, `${page}.json`);
@@ -93,8 +94,9 @@ export async function getClassMap(page: Page) {
 		const DAY_MSEC = 86_400_000;
 		const { mtimeMs } = fs.statSync(cacheFilePath);
 		if (Date.now() - mtimeMs < DAY_MSEC) {
-			classMap[page] = JSON.parse(fs.readFileSync(cacheFilePath, "utf8"));
-			return classMap[page];
+			const value = JSON.parse(fs.readFileSync(cacheFilePath, "utf8"));
+			classMaps.set(page, value);
+			return value;
 		}
 	}
 
@@ -107,13 +109,12 @@ export async function getClassMap(page: Page) {
 		process.exit(1);
 	}
 
-	const text = JSON.parse(await resp.text());
+	const value = JSON.parse(await resp.text());
 	// Cache for 24 hours so I don't fetch it all the time...
 	fs.mkdirSync(cachePath, { recursive: true });
-	fs.writeFileSync(cacheFilePath, JSON.stringify(text));
-
-	classMap[page] = text;
-	return classMap[page];
+	fs.writeFileSync(cacheFilePath, JSON.stringify(value));
+	classMaps.set(page, value);
+	return value;
 }
 
 /**

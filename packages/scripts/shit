@@ -1,8 +1,7 @@
 #!/usr/bin/env bun
 
 import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { config, type Page, readScript } from "@web-app-class-maps/scripts";
+import { type Page, readScript } from "@web-app-class-maps/scripts";
 
 const PAGES: Page[] = [
 	"steamaccountpreferences",
@@ -14,9 +13,11 @@ const PAGES: Page[] = [
 	"steamstoremenu",
 ];
 
+/**
+ * Temp fix while `build-class-modules` is still unreliable.
+ */
 async function isMapEmpty(page: Page) {
-	const filePath = path.join(config.classMapsPath, `${page}.json`);
-	const content = JSON.parse(await readFile(filePath, "utf8"));
+	const content = JSON.parse(await readFile(`${page}.json`, "utf8"));
 	return Object.keys(content).length === 0;
 }
 
