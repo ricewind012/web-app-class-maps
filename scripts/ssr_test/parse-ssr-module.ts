@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { parse, Visitor, type Expression } from "oxc-parser";
+import { parse, Visitor } from "oxc-parser";
 import * as ReactUtils from "./react-utils";
 
 const [, , file] = process.argv;
@@ -19,82 +19,31 @@ if (errors.length > 0) {
 const varNameToClassName = new Map<string, string>();
 const visitations: string[] = [];
 
-/**
- * @returns `(0, mod.useEffect)` -> `useEffect`
- */
-function getCommaOpFuncName(expr: Expression) {
-	if (
-		expr.type !== "CallExpression" ||
-		expr.callee.type !== "ParenthesizedExpression" ||
-		expr.callee.expression.type !== "SequenceExpression"
-	) {
-		return;
-	}
-
-	const [lhs, rhs] = expr.callee.expression.expressions;
-	if (lhs.type !== "Literal" || lhs.raw !== "0") {
-		return;
-	}
-
-	if (rhs.type !== "MemberExpression" || rhs.property.type !== "Identifier") {
-		return;
-	}
-
-	return rhs.property.name;
-}
-
-/**
- * Is the expression `(0, mod.jsx)`?
- */
-function isJsxCall(expr: Expression) {
-	const name = getCommaOpFuncName(expr);
-	return name === "jsx";
-}
-
 const visitor = new Visitor({
 	FunctionDeclaration(decl) {
+		if (decl.async || decl.generator) {
+			return;
+		}
+
 		if (!ReactUtils.isComponent(decl)) {
 			return;
 		}
 
-		// Find the (0, jsx)
+		// Never undefined (see above), satisfy TypeScript
 		const ret = decl.body?.body.find((e) => e.type === "ReturnStatement");
 		if (!ret) {
 			return;
 		}
 
+		// Never undefined (see above), satisfy TypeScript
 		const arg = ret.argument;
 		if (!arg) {
 			return;
 		}
 
-		const isCall = arg.type === "CallExpression" && isJsxCall(arg);
-		// TODO: doesn't work on conditional rendering
-		const isCond =
-			arg.type === "SequenceExpression" &&
-			arg.expressions.at(-1)?.type !== "LogicalExpression";
-		if (!isCall && !isCond) {
-			return;
-		}
-
-		// Exclude React hooks
-		if (
-			arg.type === "SequenceExpression" &&
-			arg.expressions[0].type === "CallExpression"
-		) {
-			const callExpr = arg.expressions.find(
-				(e) =>
-					e.type === "CallExpression" &&
-					e.callee.type === "ParenthesizedExpression",
-			);
-			if (callExpr && !isJsxCall(callExpr)) {
-				return;
-			}
-		}
-
-		const { start, end } = arg;
+		const { start, end } = decl;
 		const outer = text.slice(start, end);
-		console.log("--------------------------------\n%o\n%o", arg, outer);
+		console.log("--------------------------------\n%o\n%o", decl, outer);
 	},
 	VariableDeclarator(decl) {
 		if (!decl.init) {
