@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { parse, Visitor } from "oxc-parser";
+import { parse, Visitor, type Expression } from "oxc-parser";
 import * as ReactUtils from "./react-utils";
 
 const [, , file] = process.argv;
@@ -9,7 +9,7 @@ if (text.length < 1000) {
 	process.exit(1);
 }
 
-const { errors, program } = await parse(file, text, { range: true });
+const { errors, program } = await parse(file, text);
 if (errors.length > 0) {
 	console.error(errors);
 	process.exit(1);
@@ -18,6 +18,38 @@ if (errors.length > 0) {
 // TODO: detect component
 const varNameToClassName = new Map<string, string>();
 const visitations: string[] = [];
+
+/**
+ * @returns `(0, mod.useEffect)` -> `useEffect`
+ */
+function getCommaOpFuncName(expr: Expression) {
+	if (
+		expr.type !== "CallExpression" ||
+		expr.callee.type !== "ParenthesizedExpression" ||
+		expr.callee.expression.type !== "SequenceExpression"
+	) {
+		return;
+	}
+
+	const [lhs, rhs] = expr.callee.expression.expressions;
+	if (lhs.type !== "Literal" || lhs.raw !== "0") {
+		return;
+	}
+
+	if (rhs.type !== "MemberExpression" || rhs.property.type !== "Identifier") {
+		return;
+	}
+
+	return rhs.property.name;
+}
+
+/**
+ * Is the expression `(0, mod.jsx)`?
+ */
+function isJsxCall(expr: Expression) {
+	const name = getCommaOpFuncName(expr);
+	return name === "jsx";
+}
 
 const visitor = new Visitor({
 	FunctionDeclaration(decl) {
@@ -31,45 +63,38 @@ const visitor = new Visitor({
 			return;
 		}
 
-		const { start, end } = ret;
-		const outer = text.slice(start, end);
-		if (!ret?.argument) {
-			return;
-		}
-
-		// TODO: doesn't work on conditional rendering
 		const arg = ret.argument;
-		if (arg.type !== "CallExpression") {
-			const { start, end } = arg;
-			const outer = text.slice(start, end);
-			console.log("-------------------------------\n%o\n%o", arg, outer);
+		if (!arg) {
 			return;
 		}
 
+		const isCall = arg.type === "CallExpression" && isJsxCall(arg);
+		// TODO: doesn't work on conditional rendering
+		const isCond =
+			arg.type === "SequenceExpression" &&
+			arg.expressions.at(-1)?.type !== "LogicalExpression";
+		if (!isCall && !isCond) {
+			return;
+		}
+
+		// Exclude React hooks
 		if (
-			//arg.callee.type !== "ParenthesizedExpression" ||
-			// Webpack has (0, mod.export), SSR uses ES modules, so it'd just be
-			// "export" here
-			arg.callee.type === "Identifier"
-			// || arg.callee.expression.type !== "SequenceExpression"
+			arg.type === "SequenceExpression" &&
+			arg.expressions[0].type === "CallExpression"
 		) {
-			return;
+			const callExpr = arg.expressions.find(
+				(e) =>
+					e.type === "CallExpression" &&
+					e.callee.type === "ParenthesizedExpression",
+			);
+			if (callExpr && !isJsxCall(callExpr)) {
+				return;
+			}
 		}
 
-		const [lhs, rhs] = arg.callee.expression.expressions;
-		if (lhs.type !== "Literal" || lhs.raw !== "0") {
-			return;
-		}
-
-		if (
-			rhs.type !== "MemberExpression" ||
-			rhs.property.type !== "Identifier" ||
-			rhs.property.name !== "jsx"
-		) {
-			return;
-		}
-
-		//console.log(arg.callee, outer);
+		const { start, end } = arg;
+		const outer = text.slice(start, end);
+		console.log("--------------------------------\n%o\n%o", arg, outer);
 	},
 	VariableDeclarator(decl) {
 		if (!decl.init) {
@@ -92,7 +117,6 @@ const visitor = new Visitor({
 
 		// Usually SSR classes are 12 (+2 for quotes) characters long
 		const len = value.length;
-		//if (len <= 10 || len >= 20) {
 		if (len !== 14) {
 			//console.error("len !== 14, maybe wrong?", { len, value });
 			return;

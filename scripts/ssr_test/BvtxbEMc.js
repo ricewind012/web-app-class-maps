@@ -559,9 +559,9 @@ function qt(e, t) {
 	if (!t || !e) return null;
 	let n = t,
 		r = e;
-	for (; n.GetDepth() > r.GetDepth() && n.Parent; ) n = n.Parent;
-	for (; r.GetDepth() > n.GetDepth() && r.Parent; ) r = r.Parent;
-	for (; n != r && n && r; ) ((n = n.Parent), (r = r.Parent));
+	for (; n.GetDepth() > r.GetDepth() && n.Parent;) n = n.Parent;
+	for (; r.GetDepth() > n.GetDepth() && r.Parent;) r = r.Parent;
+	for (; n != r && n && r;) ((n = n.Parent), (r = r.Parent));
 	return n;
 }
 var Jt = class {
@@ -3266,7 +3266,11 @@ var U = t(Se(), 1),
 			`UserAccount.GetAvailableValveDiscountPromotions#1`,
 			E(vn, t, n),
 			yn,
-			{ bConstMethod: !0, ePrivilege: 2, eWebAPIKeyRequirement: 1 },
+			{
+				bConstMethod: !0,
+				ePrivilege: 2,
+				eWebAPIKeyRequirement: 1,
+			},
 		);
 	}
 	e.GetAvailableValveDiscountPromotions = t;
