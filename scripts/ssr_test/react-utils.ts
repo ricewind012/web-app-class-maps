@@ -46,6 +46,16 @@ export function getComponentProps(decl: OxcFunction) {
 		}
 
 		const { key, value } = prop;
+		// Prop has a default value
+		if (value.type === "AssignmentPattern") {
+			if (key.type !== "Identifier" || value.left.type !== "Identifier") {
+				continue;
+			}
+
+			props.set(key.name, value.left.name);
+			continue;
+		}
+
 		if (key.type !== "Identifier" || value.type !== "Identifier") {
 			continue;
 		}
