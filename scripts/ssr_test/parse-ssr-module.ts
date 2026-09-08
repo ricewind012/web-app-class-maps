@@ -21,10 +21,6 @@ const visitations: string[] = [];
 
 const visitor = new Visitor({
 	FunctionDeclaration(decl) {
-		if (decl.async || decl.generator) {
-			return;
-		}
-
 		if (!ReactUtils.isComponent(decl)) {
 			return;
 		}
@@ -41,9 +37,11 @@ const visitor = new Visitor({
 			return;
 		}
 
-		const { start, end } = decl;
+		const { start, end } = arg;
 		const outer = text.slice(start, end);
-		console.log("--------------------------------\n%o\n%o", decl, outer);
+
+		const props = ReactUtils.getComponentProps(decl);
+		console.log("%o\n%o\n---------------", props, outer);
 	},
 	VariableDeclarator(decl) {
 		if (!decl.init) {
@@ -77,3 +75,4 @@ const visitor = new Visitor({
 	},
 });
 visitor.visit(program);
+//console.log({ varNameToClassName });

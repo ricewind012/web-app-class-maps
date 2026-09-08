@@ -25,11 +25,48 @@ function getCommaOpFuncName(expr: Expression) {
 }
 
 /**
+ * @returns `let { className: i, ...a } = e` -> `Map { "className": "i" }`
+ */
+export function getComponentProps(decl: OxcFunction) {
+	const varDecl = decl.body?.body.find((e) => e.type === "VariableDeclaration");
+	if (!varDecl) {
+		return;
+	}
+
+	// Usually the first
+	const [propsDecl] = varDecl.declarations;
+	if (propsDecl.id.type !== "ObjectPattern") {
+		return;
+	}
+
+	const props = new Map<string, string>();
+	for (const prop of propsDecl.id.properties) {
+		if (prop.type !== "Property") {
+			continue;
+		}
+
+		const { key, value } = prop;
+		if (key.type !== "Identifier" || value.type !== "Identifier") {
+			continue;
+		}
+
+		props.set(key.name, value.name);
+	}
+
+	return props;
+}
+
+/**
  * Does the expression return a React element?
  */
 export function isComponent(decl: OxcFunction) {
 	// What
 	if (!decl.body) {
+		return false;
+	}
+
+	// Never async
+	if (decl.async || decl.generator) {
 		return false;
 	}
 
