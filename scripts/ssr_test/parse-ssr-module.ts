@@ -35,7 +35,6 @@ const componentPropSkipMap: Record<ValveComponent, Set<string>> = {
 
 const components = new Map<ValveComponent, Map<string, string>>();
 const varNameToClassName = new Map<string, string>();
-
 let functionDepth = 0;
 
 const visitor = new Visitor({
@@ -136,6 +135,7 @@ const visitor = new Visitor({
 
 		const keyWidth = Math.max(...pairs.map(([k]) => k.length));
 		const valueWidth = Math.max(...pairs.map(([, v]) => v.length));
+		console.log("%sResult:", Bun.color("gray", "ansi"));
 		for (const [k, v] of pairs) {
 			console.log(
 				"%s%s %s-> %s%s",
@@ -146,7 +146,6 @@ const visitor = new Visitor({
 				v.padEnd(valueWidth),
 			);
 		}
-
 		console.log("%s------------------", Bun.color("rgb(64 64 64)", "ansi"));
 	},
 	VariableDeclarator(decl) {
@@ -154,8 +153,6 @@ const visitor = new Visitor({
 			return;
 		}
 
-		// TODO: sometimes they are in an object, like the old webpack
-		// modules BUT some are still in dedi vars
 		if (decl.id.type !== "Identifier") {
 			return;
 		}
@@ -177,6 +174,14 @@ const visitor = new Visitor({
 		if (len !== 12 && len !== 13) {
 			return;
 		}
+
+		const { start, end } = decl;
+		console.log(
+			"%sInput: %s%s",
+			Bun.color("gray", "ansi"),
+			Bun.color("white", "ansi"),
+			text.slice(start, end),
+		);
 
 		const { name } = decl.id;
 		varNameToClassName.set(name, value);
