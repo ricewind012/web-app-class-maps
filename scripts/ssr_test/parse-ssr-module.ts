@@ -6,8 +6,13 @@ type ValveComponent = "steamavatar";
 
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
+// TODO: some files only export class names... wtf
 if (text.length < 1000) {
-	console.error("Length < 1000, most likely not what we want");
+	//console.error("Length < 1000, most likely not what we want");
+	//process.exit(1);
+}
+if (text.includes("<1>") || text.slice(0, 6) !== "import") {
+	console.error("Localization tokens");
 	process.exit(1);
 }
 
@@ -82,6 +87,11 @@ const visitor = new Visitor({
 			return;
 		}
 
+		// test
+		if (varNameToClassName.size === 0) {
+			return;
+		}
+
 		const { start, end } = decl;
 		const outer = text.slice(start, end);
 		// Empty object
@@ -98,7 +108,10 @@ const visitor = new Visitor({
 			const k = prop.key;
 			// Most likely React props
 			// TODO: test in future, happened one time only?
-			if (k.type === "Identifier" && k.name === "className") {
+			if (
+				k.type === "Identifier" &&
+				(k.name === "children" || k.name === "className")
+			) {
 				return;
 			}
 
@@ -171,7 +184,7 @@ const visitor = new Visitor({
 		// SSR classes are 12 characters long, with an underscore if starting
 		// with a number
 		const len = value.length;
-		if (len !== 12 && len !== 13) {
+		if (len !== 12 || (value[0] === "_" && len !== 13)) {
 			return;
 		}
 
