@@ -28,6 +28,11 @@ function getCommaOpFuncName(expr: Expression) {
  * @returns `let { className: i, ...a } = e` -> `Map { "className": "i" }`
  */
 export function getComponentProps(decl: OxcFunction) {
+	// React components only accept props
+	if (decl.params.length !== 1) {
+		return;
+	}
+
 	const varDecl = decl.body?.body.find((e) => e.type === "VariableDeclaration");
 	if (!varDecl) {
 		return;
