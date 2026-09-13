@@ -66,8 +66,7 @@ const componentClassNameFilterMap: Record<OkValveComponent, string> = {
 
 const classMap: Partial<Record<OkValveComponent, Record<string, string>>> = {};
 
-// Template-string variables declared at the top level, keyed by minified name.
-// These values are resolved when a later global object refers to the variable.
+// k: minified var name, v: class name
 const classNameByVariableName = new Map<string, string>();
 
 // Tracks whether the visitor is currently inside a function while finding
@@ -208,4 +207,3 @@ const visitor = new Visitor({
 	},
 });
 visitor.visit(program);
-console.log("-----", { classNameByVariableName });
