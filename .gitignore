@@ -1,3 +1,4 @@
 class-maps
 dist
 node_modules
+scripts/generate-ssr-class-maps/ssr

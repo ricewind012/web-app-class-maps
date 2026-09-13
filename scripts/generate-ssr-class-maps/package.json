@@ -1,0 +1,11 @@
+{
+	"name": "generate-ssr-class-maps",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"oxc-parser": "^0.149.0"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	}
+}
