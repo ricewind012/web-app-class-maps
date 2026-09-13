@@ -273,12 +273,6 @@ function getClassNamesFromChildren(
 ): [string, string][] {
 	// Multiple children
 	if (expr.type === "ArrayExpression") {
-		const value = expr.elements.flatMap((child) =>
-			child && child.type !== "SpreadElement"
-				? getClassNamesFromChildren(child, false)
-				: [],
-		);
-		console.log(value);
 		return expr.elements.flatMap((child) =>
 			child && child.type !== "SpreadElement"
 				? getClassNamesFromChildren(child, parent)
@@ -298,11 +292,11 @@ function getClassNamesFromChildren(
 	}
 
 	const pairs: [string, string][] = [];
-	const props: [string, string][] = parent ? [...info.props] : [];
+	const props = parent ? info.props : new Map<string, string>();
 
-	const realShit = propsDecl.properties.filter((e) => e.type === "Property");
-	// First loop is to get *all* the props at first, second is to parse them
-	for (const prop of realShit) {
+	const rawProps = propsDecl.properties.filter((e) => e.type === "Property");
+	// Get *all* the props at first
+	for (const prop of rawProps) {
 		if (parent) {
 			break;
 		}
@@ -314,10 +308,16 @@ function getClassNamesFromChildren(
 
 		// Only values are used anyway. It could be a bool, empty string, etc.
 		// either way, so don't bother
-		props.push([Math.random().toString(), k.name]);
+		props.set(Math.random().toString(), k.name);
 	}
 
-	for (const prop of realShit) {
+	// TODO: bruh
+	if (!parent) {
+		info.props = new Map(props);
+	}
+
+	// Now parse these props
+	for (const prop of rawProps) {
 		const k = prop.key;
 		if (k.type !== "Identifier") {
 			continue;
@@ -336,18 +336,18 @@ function getClassNamesFromChildren(
 		if (v.type === "CallExpression") {
 			pairs.push(...getClassNamesFromClassnamesCall(v));
 		} else if (v.type === "Identifier") {
-			pairs.push(...getIdentClassNamePair(v, new Map(props)));
+			pairs.push(...getIdentClassNamePair(v, props));
 		}
 	}
 
-	if (parent) {
-		console.log("\n--------------", {
-			outer: text.slice(expr.start, expr.end),
-			pairs: new Map(pairs),
-			parent,
-			props: new Map(props),
-		});
-	}
+	/*
+	console.log("\n--------------", {
+		outer: text.slice(expr.start, expr.end),
+		pairs: new Map(pairs),
+		parent,
+		props,
+	});
+	*/
 
 	return pairs;
 }
@@ -400,14 +400,16 @@ const visitor = new Visitor({
 		info.component = component;
 		info.props = props;
 		const classes = componentVisitors[component](decl);
-		classMap[component] = {};
+		if (!classMap[component]) {
+			classMap[component] = {};
+		}
 		for (const [k, v] of classes) {
 			classMap[component][k] = v;
 		}
 
 		const { start, end } = decl;
 		const outer = text.slice(start, end);
-		//console.log("-----------------", { classMap, outer, props });
+		console.log("-----------------", { classMap, outer, props });
 	},
 	"FunctionDeclaration:exit"() {
 		functionNestingDepth--;
