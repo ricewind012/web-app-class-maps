@@ -9,6 +9,11 @@
 		}
 	},
 	"files": {
-		"includes": ["**", "!**/dist", "!scripts/ssr_test/ssr", "!**/package.json"]
+		"includes": [
+			"**",
+			"!**/dist",
+			"!scripts/generate-ssr-class-maps/ssr",
+			"!**/package.json"
+		]
 	}
 }
