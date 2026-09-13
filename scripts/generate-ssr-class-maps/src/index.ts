@@ -17,29 +17,8 @@ import {
 	getReactComponentProps,
 	isReactComponent,
 } from "./ast-utils";
-
-type OkValveComponent =
-	| "contextmenu"
-	| "pagedsettings"
-	// lol
-	| "sharedsvggamerecordings"
-	| "tw_button"
-	| "tw_checkbox"
-	| "tw_controlbox"
-	| "tw_heading"
-	| "tw_icon"
-	| "tw_layout"
-	| "tw_link"
-	| "tw_segmentedcontrol"
-	| "tw_separator"
-	| "tw_spinner"
-	| "tw_text"
-	| "tw_toggle"
-	| "workshopitemcontainer";
-
-type NotOkValveComponent = "steamavatar";
-
-type ReactProps = Map<string, string>;
+import type { NotOkValveComponent, OkValveComponent } from "./component-list";
+import { info } from "./global-info";
 
 /*
 const a = await (
@@ -66,6 +45,17 @@ if (errors.length > 0) {
 	console.error(errors);
 	process.exit(1);
 }
+
+/**
+ * Used in the visitor's `ObjectExpression`.
+ */
+const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
+	// Common React props
+	"children",
+	"className",
+	// BB code init objects
+	"Constructor",
+]);
 
 /**
  * Filter for the classes found in objects.
@@ -108,14 +98,15 @@ const componentPropMap: Record<NotOkValveComponent, Map<string, string>> = {
  * Class map for those without names.
  *
  * Checks for those React props that have the `className` prop. If no parent, it
- * has to match the top level props.
+ * has to match the parent component's props and not the returned component's
+ * props.
  */
 const componentManualMap: Record<NotOkValveComponent, Map<string, string>> = {
 	steamavatar: new Map([
 		["rgSources", "Avatar"],
-		["data-status-position", "AvatarHolder"],
 		["bDisableAnimation", "AvatarFrame"],
 		["role", "AvatarFrameImg"],
+		["avatarURL", "AvatarHolder"],
 		["style", "AvatarStatus"],
 	]),
 };
@@ -125,17 +116,6 @@ const componentManualMap: Record<NotOkValveComponent, Map<string, string>> = {
  */
 const componentPropFilterMap: Record<NotOkValveComponent, Set<string>> = {
 	steamavatar: new Set(["avatarURL", "bDisableAnimation"]),
-};
-
-/**
- * Skip components, usually those without class names, that have these props.
- */
-const componentPropSkipMap: Record<NotOkValveComponent, Set<string>> = {
-	steamavatar: new Set([
-		"rgSources",
-		"playerLinkDetails",
-		"bLimitProfileFrameAnimationTime",
-	]),
 };
 
 const classMap: Partial<
@@ -149,62 +129,13 @@ const classNameByVariableName = new Map<string, string>();
 // top-level objects.
 let functionNestingDepth = 0;
 
-/**
- * Info about the currently visited component. Global to let
- * {@link classnameCallGetters} access it
- */
-// @ts-expect-error: FUCK YOU
-let info: {
-	/**
-	 * The component name.
-	 */
-	component: NotOkValveComponent;
-
-	/**
-	 * React props of the component.
-	 */
-	props: ReactProps;
-} = {};
-
-// biome-ignore lint/correctness/noUnusedVariables: stfu
-function dbgDecl(decl: Expression, other?: Record<string, unknown>) {
-	const { start, end } = decl;
-	if (!start || !end) {
-		return;
-	}
-
-	const outer = text.slice(start, end);
-	console.log({ ...other, decl, outer });
-}
-
 const classnameCallGetters: Partial<
 	// biome-ignore lint/suspicious/noExplicitAny: The arg types are all different
 	Record<Expression["type"], (arg: any) => [string, string][]>
 > = {
 	Identifier(arg: IdentifierReference) {
-		const { component, props } = info;
-		const className = classNameByVariableName.get(arg.name);
-		if (!className) {
-			const prop = props.get(arg.name);
-			return [[prop ?? "", prop === "className" ? "not needed" : "unhandled"]];
-		}
-
-		// TODO: looks awful
-		const readableClassNameProp = [...props.values()].find((k) =>
-			[...componentManualMap[component].keys()].some((e) => e === k),
-		);
-		if (!readableClassNameProp) {
-			return [[className, ""]];
-		}
-
-		const readableClassName = componentManualMap[component].get(
-			readableClassNameProp,
-		);
-		if (!readableClassName) {
-			return [["", ""]];
-		}
-
-		return [[className, readableClassName]];
+		const { props } = info;
+		return getIdentClassNamePair(arg, props);
 	},
 	ObjectExpression(arg: ObjectExpression) {
 		// fuck off typescript
@@ -305,15 +236,52 @@ function getClassNamesFromClassnamesCall(expr: CallExpression) {
 	return classNames;
 }
 
+function getIdentClassNamePair(
+	ident: IdentifierReference,
+	props: Map<string, string>,
+): [string, string][] {
+	const { component } = info;
+	const className = classNameByVariableName.get(ident.name);
+	if (!className) {
+		return [["", ""]];
+	}
+
+	// TODO: looks awful
+	const map = componentManualMap[component];
+	const keys = [...map.keys()];
+	const readableClassNameProp = [...props.values()].find((k) =>
+		keys.some((e) => e === k),
+	);
+	if (!readableClassNameProp) {
+		return [[className, ""]];
+	}
+
+	const readableClassName = map.get(readableClassNameProp);
+	if (!readableClassName) {
+		return [["", ""]];
+	}
+
+	return [[className, readableClassName]];
+}
+
 /**
  * Gets the class names of a `jsx(s)` call and its children.
  */
-function getClassNamesFromChildren(expr: Expression): [string, string][] {
+function getClassNamesFromChildren(
+	expr: Expression,
+	parent: boolean,
+): [string, string][] {
 	// Multiple children
 	if (expr.type === "ArrayExpression") {
+		const value = expr.elements.flatMap((child) =>
+			child && child.type !== "SpreadElement"
+				? getClassNamesFromChildren(child, false)
+				: [],
+		);
+		console.log(value);
 		return expr.elements.flatMap((child) =>
 			child && child.type !== "SpreadElement"
-				? getClassNamesFromChildren(child)
+				? getClassNamesFromChildren(child, parent)
 				: [],
 		);
 	}
@@ -323,33 +291,62 @@ function getClassNamesFromChildren(expr: Expression): [string, string][] {
 		return [];
 	}
 
-	const props = expr.arguments.find((e) => e.type === "ObjectExpression");
+	const propsDecl = expr.arguments.find((e) => e.type === "ObjectExpression");
 	// No props. Implied, satisfy TypeScript
-	if (!props) {
+	if (!propsDecl) {
 		return [];
 	}
 
-	console.log({
-		a: props.properties.map((e) => e.key?.name),
-		b: [...info.props.values()],
-	});
-
 	const pairs: [string, string][] = [];
-	for (const prop of props.properties) {
-		if (prop.type === "SpreadElement" || prop.key.type !== "Identifier") {
+	const props: [string, string][] = parent ? [...info.props] : [];
+
+	const realShit = propsDecl.properties.filter((e) => e.type === "Property");
+	// First loop is to get *all* the props at first, second is to parse them
+	for (const prop of realShit) {
+		if (parent) {
+			break;
+		}
+
+		const k = prop.key;
+		if (k.type !== "Identifier") {
 			continue;
 		}
 
-		if (prop.key.name === "children") {
-			pairs.push(...getClassNamesFromChildren(prop.value));
+		// Only values are used anyway. It could be a bool, empty string, etc.
+		// either way, so don't bother
+		props.push([Math.random().toString(), k.name]);
+	}
+
+	for (const prop of realShit) {
+		const k = prop.key;
+		if (k.type !== "Identifier") {
 			continue;
 		}
 
-		if (prop.key.name !== "className" || prop.value.type !== "CallExpression") {
+		const v = prop.value;
+		if (k.name === "children") {
+			pairs.push(...getClassNamesFromChildren(v, false));
 			continue;
 		}
 
-		pairs.push(...getClassNamesFromClassnamesCall(prop.value));
+		if (k.name !== "className") {
+			continue;
+		}
+
+		if (v.type === "CallExpression") {
+			pairs.push(...getClassNamesFromClassnamesCall(v));
+		} else if (v.type === "Identifier") {
+			pairs.push(...getIdentClassNamePair(v, new Map(props)));
+		}
+	}
+
+	if (parent) {
+		console.log("\n--------------", {
+			outer: text.slice(expr.start, expr.end),
+			pairs: new Map(pairs),
+			parent,
+			props: new Map(props),
+		});
 	}
 
 	return pairs;
@@ -374,7 +371,7 @@ const componentVisitors: Record<
 			return [];
 		}
 
-		return getClassNamesFromChildren(call as CallExpression);
+		return getClassNamesFromChildren(call, true);
 	},
 };
 
@@ -400,16 +397,8 @@ const visitor = new Visitor({
 			return;
 		}
 
-		// TODO: is this needed because of the above? it wouldn't find it anyway
-		const dumbComponent = names.find((e) =>
-			componentPropSkipMap[component].has(e),
-		);
-		if (dumbComponent) {
-			console.error(`Skipping '${dumbComponent}'`);
-			return;
-		}
-
-		info = { component, props };
+		info.component = component;
+		info.props = props;
 		const classes = componentVisitors[component](decl);
 		classMap[component] = {};
 		for (const [k, v] of classes) {
@@ -418,7 +407,7 @@ const visitor = new Visitor({
 
 		const { start, end } = decl;
 		const outer = text.slice(start, end);
-		console.log("-----------------", { classMap, outer, props });
+		//console.log("-----------------", { classMap, outer, props });
 	},
 	"FunctionDeclaration:exit"() {
 		functionNestingDepth--;
@@ -441,13 +430,6 @@ const visitor = new Visitor({
 				continue;
 			}
 
-			const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
-				// Common React props
-				"children",
-				"className",
-				// BB code init objects
-				"Constructor",
-			]);
 			const k = prop.key;
 			if (k.type === "Identifier" && BLACKLISTED_OBJ_EXPR_KEYS.has(k.name)) {
 				return;
