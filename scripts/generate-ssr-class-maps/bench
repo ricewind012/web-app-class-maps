@@ -1,0 +1,5 @@
+#!/bin/sh
+for i in ssr/*; do
+	bun parse-ssr-module.ts "$i"
+done
+

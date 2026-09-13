@@ -9,6 +9,6 @@
 		}
 	},
 	"files": {
-		"includes": ["**", "!**/dist", "!**/package.json"]
+		"includes": ["**", "!**/dist", "!scripts/ssr_test/ssr", "!**/package.json"]
 	}
 }

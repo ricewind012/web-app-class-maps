@@ -1,12 +1,16 @@
-import Bun from "bun";
 import { readFile } from "node:fs/promises";
-import { parse, Visitor, type Expression, type PropertyKey } from "oxc-parser";
-import * as ReactUtils from "./react-utils";
+import Bun from "bun";
+import {
+	type Expression,
+	type PropertyKey,
+	parseSync,
+	Visitor,
+} from "oxc-parser";
 
-type ValveComponent =
+type OkValveComponent =
 	| "contextmenu"
 	| "pagedsettings"
-	| "steamavatar"
+	// lol
 	| "sharedsvggamerecordings"
 	| "tw_button"
 	| "tw_checkbox"
@@ -25,22 +29,26 @@ type ValveComponent =
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
 // TODO: some files only export class names... wtf
+/*
 if (text.includes("<1>") || text.slice(0, 6) !== "import") {
 	console.error("Localization tokens");
 	process.exit(1);
 }
+*/
 
-const { errors, program } = await parse(file, text);
+const { errors, program } = parseSync(file, text);
 if (errors.length > 0) {
 	console.error(errors);
 	process.exit(1);
 }
 
-const componentClassFilterMap: Record<ValveComponent, string> = {
+/**
+ * Filter for the classes found in objects.
+ */
+const componentClassNameFilterMap: Record<OkValveComponent, string> = {
 	contextmenu: "contextMenu",
 	pagedsettings: "PagedSettingsDialog",
 	sharedsvggamerecordings: "RecordingIconContainer",
-	steamavatar: "AvatarFrame",
 	tw_button: "Button",
 	tw_checkbox: "Checkbox",
 	tw_controlbox: "ControlBox",
@@ -56,59 +64,19 @@ const componentClassFilterMap: Record<ValveComponent, string> = {
 	workshopitemcontainer: "aspectratio_square",
 };
 
-// TODO: What
-const componentPropMap: Partial<
-	Record<ValveComponent, Record<string, string>>
-> = {
-	steamavatar: {
-		Avatar: "avatarURL",
-		AvatarFrame: "bDisableAnimation",
-	},
-};
+const classMap: Partial<Record<OkValveComponent, Record<string, string>>> = {};
 
-const componentPropSkipMap: Partial<Record<ValveComponent, Set<string>>> = {
-	steamavatar: new Set([
-		"rgSources",
-		"playerLinkDetails",
-		"bLimitProfileFrameAnimationTime",
-	]),
-};
-
-const classMap: Partial<Record<ValveComponent, Record<string, string>>> = {};
-
-// Template-string variables declared at the top level, keyed by source name.
+// Template-string variables declared at the top level, keyed by minified name.
 // These values are resolved when a later global object refers to the variable.
 const classNameByVariableName = new Map<string, string>();
 
-// Oxc does not attach parent links to nodes, so this tracks whether the visitor
-// is currently inside a function while finding top-level objects.
+// Tracks whether the visitor is currently inside a function while finding
+// top-level objects.
 let functionNestingDepth = 0;
 
 const visitor = new Visitor({
-	FunctionDeclaration(decl) {
-		// For top-level global detection
+	FunctionDeclaration() {
 		functionNestingDepth++;
-
-		if (!ReactUtils.isComponent(decl)) {
-			return;
-		}
-
-		const props = ReactUtils.getComponentProps(decl);
-		if (!props) {
-			return;
-		}
-
-		// TODO: detect component file
-		const component: ValveComponent = "steamavatar";
-
-		// TODO: hop on the props object
-		const names = [...props.keys()];
-		for (const name of names) {
-			if (componentPropSkipMap[component]?.has(name)) {
-				console.error(`Skipping '${name}'`);
-				return;
-			}
-		}
 	},
 	"FunctionDeclaration:exit"() {
 		functionNestingDepth--;
@@ -176,8 +144,10 @@ const visitor = new Visitor({
 		}
 
 		const component = (
-			Object.keys(componentClassFilterMap) as ValveComponent[]
-		).find((key) => pairs.some(([k]) => k === componentClassFilterMap[key]));
+			Object.keys(componentClassNameFilterMap) as OkValveComponent[]
+		).find((key) =>
+			pairs.some(([k]) => k === componentClassNameFilterMap[key]),
+		);
 		if (!component) {
 			return;
 		}
@@ -238,3 +208,4 @@ const visitor = new Visitor({
 	},
 });
 visitor.visit(program);
+console.log("-----", { classNameByVariableName });
