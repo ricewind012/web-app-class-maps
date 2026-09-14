@@ -6,25 +6,30 @@ import {
 	parseSync,
 	Visitor,
 } from "oxc-parser";
+import { getReactComponentProps, isReactComponent } from "./ast-utils";
+import {
+	componentClassNameFilterMap,
+	componentPropFilterMap,
+	componentVisitors,
+	type NotOkValveComponent,
+	type OkValveComponent,
+} from "./component-list";
+import {
+	changeFunctionDepth,
+	classNameByVariableName,
+	currentComponent,
+	isInFunction,
+} from "./state";
 
-type OkValveComponent =
-	| "contextmenu"
-	| "pagedsettings"
-	// lol
-	| "sharedsvggamerecordings"
-	| "tw_button"
-	| "tw_checkbox"
-	| "tw_controlbox"
-	| "tw_heading"
-	| "tw_icon"
-	| "tw_layout"
-	| "tw_link"
-	| "tw_segmentedcontrol"
-	| "tw_separator"
-	| "tw_spinner"
-	| "tw_text"
-	| "tw_toggle"
-	| "workshopitemcontainer";
+/*
+const a = await (
+	await fetch("https://steamcommunity.com/workshop/browse/?appid=312520")
+).text();
+const hrefs = [
+	...a.matchAll(/<link rel="modulepreload" href="(https.*?\.js)" as="script"/g),
+	...a.matchAll(/<script type="module" src="(https.*?\.js)" nonce/g),
+].map((e) => e[1]);
+*/
 
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
@@ -43,46 +48,62 @@ if (errors.length > 0) {
 }
 
 /**
- * Filter for the classes found in objects.
+ * Used in the visitor's `ObjectExpression`.
  */
-const componentClassNameFilterMap: Record<OkValveComponent, string> = {
-	contextmenu: "contextMenu",
-	pagedsettings: "PagedSettingsDialog",
-	sharedsvggamerecordings: "RecordingIconContainer",
-	tw_button: "Button",
-	tw_checkbox: "Checkbox",
-	tw_controlbox: "ControlBox",
-	tw_heading: "Heading", // HeadingSize-1
-	tw_icon: "IconSizeDefault",
-	tw_layout: "ZIndex",
-	tw_link: "TextLinkButton",
-	tw_segmentedcontrol: "SegmentedControl",
-	tw_separator: "Separator",
-	tw_spinner: "Spinner",
-	tw_text: "WhiteSpace",
-	tw_toggle: "Track",
-	workshopitemcontainer: "aspectratio_square",
-};
+const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
+	// Common React props
+	"children",
+	"className",
+	// BB code init objects
+	"Constructor",
+]);
 
-const classMap: Partial<Record<OkValveComponent, Record<string, string>>> = {};
-
-// k: minified var name, v: class name
-const classNameByVariableName = new Map<string, string>();
-
-// Tracks whether the visitor is currently inside a function while finding
-// top-level objects.
-let functionNestingDepth = 0;
+const classMap: Partial<
+	Record<OkValveComponent | NotOkValveComponent, Record<string, string>>
+> = {};
 
 const visitor = new Visitor({
-	FunctionDeclaration() {
-		functionNestingDepth++;
+	FunctionDeclaration(decl) {
+		changeFunctionDepth(true);
+
+		if (!isReactComponent(decl)) {
+			return;
+		}
+
+		const props = getReactComponentProps(decl);
+		if (!props) {
+			return;
+		}
+
+		const names = [...props.values()];
+		const component = (
+			Object.keys(componentPropFilterMap) as NotOkValveComponent[]
+		).find((k) => names.some((e) => componentPropFilterMap[k].has(e)));
+		// No component, bye
+		if (!component) {
+			return;
+		}
+
+		currentComponent.component = component;
+		currentComponent.props = props;
+		const classes = componentVisitors[component](decl);
+		if (!classMap[component]) {
+			classMap[component] = {};
+		}
+		for (const [k, v] of classes) {
+			classMap[component][k] = v;
+		}
+
+		const { start, end } = decl;
+		const outer = text.slice(start, end);
+		//console.log("-----------------", { outer, props });
 	},
 	"FunctionDeclaration:exit"() {
-		functionNestingDepth--;
+		changeFunctionDepth(false);
 	},
 	ObjectExpression(decl) {
 		// Only inspect top-level objects
-		if (functionNestingDepth !== 0) {
+		if (isInFunction()) {
 			return;
 		}
 
@@ -98,13 +119,6 @@ const visitor = new Visitor({
 				continue;
 			}
 
-			const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
-				// Common React props
-				"children",
-				"className",
-				// BB code init objects
-				"Constructor",
-			]);
 			const k = prop.key;
 			if (k.type === "Identifier" && BLACKLISTED_OBJ_EXPR_KEYS.has(k.name)) {
 				return;
@@ -207,3 +221,5 @@ const visitor = new Visitor({
 	},
 });
 visitor.visit(program);
+//console.log(classMap);
+console.log("-----", { classNameByVariableName });
