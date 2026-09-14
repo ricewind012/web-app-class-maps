@@ -1,24 +1,25 @@
 import { readFile } from "node:fs/promises";
 import Bun from "bun";
 import {
-	type CallExpression,
 	type Expression,
-	type IdentifierReference,
-	type ObjectExpression,
-	type Function as OxcFunction,
 	type PropertyKey,
 	parseSync,
-	type TemplateLiteral,
 	Visitor,
 } from "oxc-parser";
+import { getReactComponentProps, isReactComponent } from "./ast-utils";
 import {
-	getCommaOpFuncName,
-	getFuncReturn,
-	getReactComponentProps,
-	isReactComponent,
-} from "./ast-utils";
-import type { NotOkValveComponent, OkValveComponent } from "./component-list";
-import { info } from "./global-info";
+	componentClassNameFilterMap,
+	componentPropFilterMap,
+	componentVisitors,
+	type NotOkValveComponent,
+	type OkValveComponent,
+} from "./component-list";
+import {
+	changeFunctionDepth,
+	classNameByVariableName,
+	currentComponent,
+	isInFunction,
+} from "./state";
 
 /*
 const a = await (
@@ -57,327 +58,13 @@ const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
 	"Constructor",
 ]);
 
-/**
- * Filter for the classes found in objects.
- */
-const componentClassNameFilterMap: Record<OkValveComponent, string> = {
-	contextmenu: "contextMenu",
-	pagedsettings: "PagedSettingsDialog",
-	sharedsvggamerecordings: "RecordingIconContainer",
-	tw_button: "Button",
-	tw_checkbox: "Checkbox",
-	tw_controlbox: "ControlBox",
-	tw_heading: "Heading", // HeadingSize-1
-	tw_icon: "IconSizeDefault",
-	tw_layout: "ZIndex",
-	tw_link: "TextLinkButton",
-	tw_segmentedcontrol: "SegmentedControl",
-	tw_separator: "Separator",
-	tw_spinner: "Spinner",
-	tw_text: "WhiteSpace",
-	tw_toggle: "Track",
-	workshopitemcontainer: "aspectratio_square",
-};
-
-/**
- * Class map that corresponds for each React prop. Used for
- * {@link getClassNamesFromClassnamesCall}.
- */
-const componentPropMap: Record<NotOkValveComponent, Map<string, string>> = {
-	steamavatar: new Map([
-		["isOnline", "Online"],
-		// TODO: lol
-		["!isOnline", "Offline"],
-		["isInGame", "InGame"],
-		["isWatchingBroadcast", "WatchingBroadcast"],
-		["isAwayOrSnooze", "AwayOrSnooze"],
-	]),
-};
-
-/**
- * Class map for those without names.
- *
- * Checks for those React props that have the `className` prop. If no parent, it
- * has to match the parent component's props and not the returned component's
- * props.
- */
-const componentManualMap: Record<NotOkValveComponent, Map<string, string>> = {
-	steamavatar: new Map([
-		["rgSources", "Avatar"],
-		["bDisableAnimation", "AvatarFrame"],
-		["role", "AvatarFrameImg"],
-		["avatarURL", "AvatarHolder"],
-		["style", "AvatarStatus"],
-	]),
-};
-
-/**
- * Filter for the classes that have to be manually found.
- */
-const componentPropFilterMap: Record<NotOkValveComponent, Set<string>> = {
-	steamavatar: new Set(["avatarURL", "bDisableAnimation"]),
-};
-
 const classMap: Partial<
 	Record<OkValveComponent | NotOkValveComponent, Record<string, string>>
 > = {};
 
-// k: minified var name, v: class name
-const classNameByVariableName = new Map<string, string>();
-
-// Tracks whether the visitor is currently inside a function while finding
-// top-level objects.
-let functionNestingDepth = 0;
-
-const classnameCallGetters: Partial<
-	// biome-ignore lint/suspicious/noExplicitAny: The arg types are all different
-	Record<Expression["type"], (arg: any) => [string, string][]>
-> = {
-	Identifier(arg: IdentifierReference) {
-		const { props } = info;
-		return getIdentClassNamePair(arg, props);
-	},
-	ObjectExpression(arg: ObjectExpression) {
-		// fuck off typescript
-		if (!info) {
-			return [];
-		}
-
-		const { component, props } = info;
-		const classes: [string, string][] = [];
-		for (const prop of arg.properties) {
-			// Not a thing
-			if (prop.type === "SpreadElement") {
-				continue;
-			}
-
-			const k = prop.key;
-			// Always a reference to another var
-			if (k.type !== "Identifier") {
-				continue;
-			}
-
-			const v = prop.value;
-			// Always var refs or bools
-			const reactProp = (() => {
-				if (v.type === "Identifier") {
-					return props.get(v.name);
-				}
-
-				// TODO
-				if (v.type === "LogicalExpression") {
-					return v.type;
-				}
-
-				// TODO: can be "[S]: !s, [C]: s", see steamavatar
-				if (v.type === "UnaryExpression") {
-					const arg = v.argument;
-					if (arg.type !== "Identifier") {
-						return;
-					}
-
-					return props.get(arg.name);
-				}
-			})();
-			if (!reactProp) {
-				return [];
-			}
-
-			const className = classNameByVariableName.get(k.name);
-			const readableClassName = componentPropMap[component].get(reactProp);
-			if (!className || !readableClassName) {
-				continue;
-			}
-
-			classes.push([className, readableClassName]);
-		}
-
-		return classes;
-	},
-	TemplateLiteral(arg: TemplateLiteral) {
-		// TODO
-	},
-};
-const validClassnameCallGetterTypes = new Set<Expression["type"]>(
-	Object.keys(classnameCallGetters) as unknown as Expression["type"][],
-);
-
-/**
- * @returns `(0, mod.default)(a, b, c)` -> `["value for a", "value for b"]`.
- */
-function getClassNamesFromClassnamesCall(expr: CallExpression) {
-	const name = getCommaOpFuncName(expr);
-	// It's the ONLY default export for some reason
-	if (name !== "default") {
-		return [];
-	}
-
-	const classNames: [string, string][] = [];
-	for (const arg of expr.arguments) {
-		// Not a thing
-		if (arg.type === "SpreadElement") {
-			return [];
-		}
-
-		if (!validClassnameCallGetterTypes.has(arg.type)) {
-			console.error("unhandled Classnames arg type %o", arg.type);
-			return [];
-		}
-
-		// it's defined, piss off typescript
-		const value = classnameCallGetters[arg.type]?.(arg);
-		if (!value) {
-			continue;
-		}
-
-		classNames.push(...value);
-	}
-
-	return classNames;
-}
-
-function getIdentClassNamePair(
-	ident: IdentifierReference,
-	props: Map<string, string>,
-): [string, string][] {
-	const { component } = info;
-	const className = classNameByVariableName.get(ident.name);
-	if (!className) {
-		return [["", ""]];
-	}
-
-	// TODO: looks awful
-	const map = componentManualMap[component];
-	const keys = [...map.keys()];
-	const readableClassNameProp = [...props.values()].find((k) =>
-		keys.some((e) => e === k),
-	);
-	if (!readableClassNameProp) {
-		return [[className, ""]];
-	}
-
-	const readableClassName = map.get(readableClassNameProp);
-	if (!readableClassName) {
-		return [["", ""]];
-	}
-
-	return [[className, readableClassName]];
-}
-
-/**
- * Gets the class names of a `jsx(s)` call and its children.
- */
-function getClassNamesFromChildren(
-	expr: Expression,
-	parent: boolean,
-): [string, string][] {
-	// Multiple children
-	if (expr.type === "ArrayExpression") {
-		return expr.elements.flatMap((child) =>
-			child && child.type !== "SpreadElement"
-				? getClassNamesFromChildren(child, parent)
-				: [],
-		);
-	}
-
-	// Not a jsx(s) call. Implied, satisfy TypeScript
-	if (expr.type !== "CallExpression") {
-		return [];
-	}
-
-	const propsDecl = expr.arguments.find((e) => e.type === "ObjectExpression");
-	// No props. Implied, satisfy TypeScript
-	if (!propsDecl) {
-		return [];
-	}
-
-	const pairs: [string, string][] = [];
-	const props = parent ? info.props : new Map<string, string>();
-
-	const rawProps = propsDecl.properties.filter((e) => e.type === "Property");
-	// Get *all* the props at first
-	for (const prop of rawProps) {
-		if (parent) {
-			break;
-		}
-
-		const k = prop.key;
-		if (k.type !== "Identifier") {
-			continue;
-		}
-
-		// Only values are used anyway. It could be a bool, empty string, etc.
-		// either way, so don't bother
-		props.set(Math.random().toString(), k.name);
-	}
-
-	// TODO: bruh
-	if (!parent) {
-		info.props = new Map(props);
-	}
-
-	// Now parse these props
-	for (const prop of rawProps) {
-		const k = prop.key;
-		if (k.type !== "Identifier") {
-			continue;
-		}
-
-		const v = prop.value;
-		if (k.name === "children") {
-			pairs.push(...getClassNamesFromChildren(v, false));
-			continue;
-		}
-
-		if (k.name !== "className") {
-			continue;
-		}
-
-		if (v.type === "CallExpression") {
-			pairs.push(...getClassNamesFromClassnamesCall(v));
-		} else if (v.type === "Identifier") {
-			pairs.push(...getIdentClassNamePair(v, props));
-		}
-	}
-
-	/*
-	console.log("\n--------------", {
-		outer: text.slice(expr.start, expr.end),
-		pairs: new Map(pairs),
-		parent,
-		props,
-	});
-	*/
-
-	return pairs;
-}
-
-/**
- * These are implied to be React components, so do not check if they are.
- */
-const componentVisitors: Record<
-	NotOkValveComponent,
-	(decl: OxcFunction) => [string, string][]
-> = {
-	steamavatar: (decl) => {
-		const arg = getFuncReturn(decl);
-		if (arg?.type !== "SequenceExpression") {
-			return [];
-		}
-
-		// return statement
-		const call = arg.expressions.findLast((e) => e.type === "CallExpression");
-		if (!call) {
-			return [];
-		}
-
-		return getClassNamesFromChildren(call, true);
-	},
-};
-
 const visitor = new Visitor({
 	FunctionDeclaration(decl) {
-		functionNestingDepth++;
+		changeFunctionDepth(true);
 
 		if (!isReactComponent(decl)) {
 			return;
@@ -397,8 +84,8 @@ const visitor = new Visitor({
 			return;
 		}
 
-		info.component = component;
-		info.props = props;
+		currentComponent.component = component;
+		currentComponent.props = props;
 		const classes = componentVisitors[component](decl);
 		if (!classMap[component]) {
 			classMap[component] = {};
@@ -409,14 +96,14 @@ const visitor = new Visitor({
 
 		const { start, end } = decl;
 		const outer = text.slice(start, end);
-		console.log("-----------------", { classMap, outer, props });
+		//console.log("-----------------", { outer, props });
 	},
 	"FunctionDeclaration:exit"() {
-		functionNestingDepth--;
+		changeFunctionDepth(false);
 	},
 	ObjectExpression(decl) {
 		// Only inspect top-level objects
-		if (functionNestingDepth !== 0) {
+		if (isInFunction()) {
 			return;
 		}
 
@@ -534,4 +221,5 @@ const visitor = new Visitor({
 	},
 });
 visitor.visit(program);
-//console.log("-----", { classNameByVariableName });
+//console.log(classMap);
+console.log("-----", { classNameByVariableName });
