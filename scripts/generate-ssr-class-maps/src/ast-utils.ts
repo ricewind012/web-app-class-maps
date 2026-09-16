@@ -1,18 +1,24 @@
 import type { CallExpression, Function as OxcFunction } from "oxc-parser";
 
 /**
- * @returns `(0, mod.useEffect)` -> `useEffect`
+ * @returns `mod.useEffect` / `(0, mod.useEffect)` -> `useEffect`
  */
-export function getCommaOpFuncName(expr: CallExpression) {
+export function getFuncName(expr: CallExpression) {
+	// mod.func
+	const c = expr.callee;
+	if (c.type === "MemberExpression" && c.property.type === "Identifier") {
+		return c.property.name;
+	}
+
+	// (0, mod.func)
 	if (
-		expr.type !== "CallExpression" ||
-		expr.callee.type !== "ParenthesizedExpression" ||
-		expr.callee.expression.type !== "SequenceExpression"
+		c.type !== "ParenthesizedExpression" ||
+		c.expression.type !== "SequenceExpression"
 	) {
 		return;
 	}
 
-	const [lhs, rhs] = expr.callee.expression.expressions;
+	const [lhs, rhs] = c.expression.expressions;
 	if (lhs.type !== "Literal" || lhs.raw !== "0") {
 		return;
 	}
@@ -25,6 +31,23 @@ export function getCommaOpFuncName(expr: CallExpression) {
 }
 
 /**
+ * @returns the function's `return`.
+ */
+export function getFuncReturn(decl: OxcFunction) {
+	const ret = decl.body?.body.find((e) => e.type === "ReturnStatement");
+	// Returns nothing
+	if (!ret) {
+		return;
+	}
+
+	return ret.argument;
+}
+
+/**
+ * Caveats:
+ * - the props are just the first variable declaration
+ * - only works on components whose props are getting *instantly* destructed
+ *
  * @returns `let { className: i, ...a } = e` -> `Map { "i": "className" }`
  */
 export function getReactComponentProps(decl: OxcFunction) {
@@ -70,19 +93,6 @@ export function getReactComponentProps(decl: OxcFunction) {
 	}
 
 	return props;
-}
-
-/**
- * @returns the function's `return`.
- */
-export function getFuncReturn(decl: OxcFunction) {
-	const ret = decl.body?.body.find((e) => e.type === "ReturnStatement");
-	// Returns nothing
-	if (!ret) {
-		return;
-	}
-
-	return ret.argument;
 }
 
 /**
@@ -141,6 +151,6 @@ export function isReactComponent(decl: OxcFunction) {
  * Is the expression `(0, mod.jsx)`?
  */
 export function isJsxCall(expr: CallExpression) {
-	const name = getCommaOpFuncName(expr);
+	const name = getFuncName(expr);
 	return name === "jsx" || name === "jsxs";
 }

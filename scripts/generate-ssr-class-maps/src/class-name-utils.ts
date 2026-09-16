@@ -5,8 +5,12 @@ import type {
 	ObjectExpression,
 	TemplateLiteral,
 } from "oxc-parser";
-import { getCommaOpFuncName } from "./ast-utils";
-import { componentManualMap, componentPropMap } from "./component-list";
+import { getFuncName } from "./ast-utils";
+import {
+	componentClassnamePropMap,
+	componentManualMap,
+} from "./component-list";
+import { COMMON_REACT_PROPS } from "./consts";
 import { classNameByVariableName, currentComponent } from "./state";
 
 const classnameCallGetters: Partial<
@@ -18,11 +22,6 @@ const classnameCallGetters: Partial<
 		return getIdentClassNamePair(arg, props);
 	},
 	ObjectExpression(arg: ObjectExpression) {
-		// fuck off typescript
-		if (!currentComponent) {
-			return [];
-		}
-
 		const { component, props } = currentComponent;
 		const classes: [string, string][] = [];
 		for (const prop of arg.properties) {
@@ -64,7 +63,9 @@ const classnameCallGetters: Partial<
 			}
 
 			const className = classNameByVariableName.get(k.name);
-			const readableClassName = componentPropMap[component].get(reactProp);
+			// it's defined, piss off typescript
+			const readableClassName =
+				componentClassnamePropMap[component]?.get(reactProp);
 			if (!className || !readableClassName) {
 				continue;
 			}
@@ -78,6 +79,7 @@ const classnameCallGetters: Partial<
 		// TODO
 	},
 };
+
 const validClassnameCallGetterTypes = new Set<Expression["type"]>(
 	Object.keys(classnameCallGetters) as unknown as Expression["type"][],
 );
@@ -86,7 +88,7 @@ const validClassnameCallGetterTypes = new Set<Expression["type"]>(
  * @returns `(0, mod.default)(a, b, c)` -> `["value for a", "value for b"]`.
  */
 export function getClassNamesFromClassnamesCall(expr: CallExpression) {
-	const name = getCommaOpFuncName(expr);
+	const name = getFuncName(expr);
 	// It's the ONLY default export for some reason
 	if (name !== "default") {
 		return [];
@@ -146,9 +148,9 @@ export function getClassNamesFromChildren(
 	const pairs: [string, string][] = [];
 	const props = parent ? currentComponent.props : new Map<string, string>();
 
-	const rawProps = propsDecl.properties.filter((e) => e.type === "Property");
+	const propNodes = propsDecl.properties.filter((e) => e.type === "Property");
 	// Get *all* the props at first
-	for (const prop of rawProps) {
+	for (const prop of propNodes) {
 		if (parent) {
 			break;
 		}
@@ -163,13 +165,18 @@ export function getClassNamesFromChildren(
 		props.set(Math.random().toString(), k.name);
 	}
 
-	// TODO: bruh
+	const outer = text.slice(expr.start, expr.end);
 	if (!parent) {
+		if ([...props.values()].every((e) => COMMON_REACT_PROPS.has(e))) {
+			console.log("fucking hello?", { outer, props });
+			return [];
+		}
+
 		currentComponent.props = new Map(props);
 	}
 
 	// Now parse these props
-	for (const prop of rawProps) {
+	for (const prop of propNodes) {
 		const k = prop.key;
 		if (k.type !== "Identifier") {
 			continue;
@@ -192,14 +199,14 @@ export function getClassNamesFromChildren(
 		}
 	}
 
-	/*
-	console.log("\n--------------", {
-		outer: text.slice(expr.start, expr.end),
-		pairs: new Map(pairs),
-		parent,
-		props,
-	});
-	*/
+	if (outer.includes("className:Io") && false) {
+		console.log("\n--------------", {
+			outer,
+			pairs: new Map(pairs),
+			parent,
+			props,
+		});
+	}
 
 	return pairs;
 }
@@ -214,7 +221,6 @@ export function getIdentClassNamePair(
 		return [["", ""]];
 	}
 
-	// TODO: looks awful
 	const map = componentManualMap[component];
 	const keys = [...map.keys()];
 	const readableClassNameProp = [...props.values()].find((k) =>

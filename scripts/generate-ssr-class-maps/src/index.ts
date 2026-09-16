@@ -1,12 +1,16 @@
 import { readFile } from "node:fs/promises";
-import Bun from "bun";
 import {
 	type Expression,
+	type Function as OxcFunction,
 	type PropertyKey,
 	parseSync,
 	Visitor,
 } from "oxc-parser";
-import { getReactComponentProps, isReactComponent } from "./ast-utils";
+import {
+	getFuncName,
+	getReactComponentProps,
+	isReactComponent,
+} from "./ast-utils";
 import {
 	componentClassNameFilterMap,
 	componentPropFilterMap,
@@ -14,6 +18,7 @@ import {
 	type NotOkValveComponent,
 	type OkValveComponent,
 } from "./component-list";
+import { BLACKLISTED_OBJ_EXPR_KEYS } from "./consts";
 import {
 	changeFunctionDepth,
 	classNameByVariableName,
@@ -33,6 +38,7 @@ const hrefs = [
 
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
+(globalThis as typeof globalThis & { text: string }).text = text;
 // TODO: some files only export class names... wtf
 /*
 if (text.includes("<1>") || text.slice(0, 6) !== "import") {
@@ -47,23 +53,18 @@ if (errors.length > 0) {
 	process.exit(1);
 }
 
-/**
- * Used in the visitor's `ObjectExpression`.
- */
-const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
-	// Common React props
-	"children",
-	"className",
-	// BB code init objects
-	"Constructor",
-]);
-
 const classMap: Partial<
 	Record<OkValveComponent | NotOkValveComponent, Record<string, string>>
 > = {};
 
 const visitor = new Visitor({
-	FunctionDeclaration(decl) {
+	CallExpression(decl) {
+		const funcName = getFuncName(decl);
+		if (funcName?.startsWith("Localize")) {
+			//console.log({ decl });
+		}
+	},
+	FunctionDeclaration(decl: OxcFunction) {
 		changeFunctionDepth(true);
 
 		if (!isReactComponent(decl)) {
@@ -166,6 +167,7 @@ const visitor = new Visitor({
 		}
 
 		const ckv: Record<string, string> = {};
+		/*
 		const keyWidth = Math.max(...pairs.map(([k]) => k.length));
 		const valueWidth = Math.max(...pairs.map(([, v]) => v.length));
 		console.log(
@@ -174,8 +176,10 @@ const visitor = new Visitor({
 			Bun.color("white", "ansi"),
 			component,
 		);
+		*/
 		for (const [k, v] of pairs) {
 			ckv[k] = v;
+			/*
 			console.log(
 				"%s%s %s-> %s%s",
 				Bun.color("white", "ansi"),
@@ -184,8 +188,9 @@ const visitor = new Visitor({
 				Bun.color("white", "ansi"),
 				v.padEnd(valueWidth),
 			);
+			*/
 		}
-		console.log("%s------------------", Bun.color("gray", "ansi"));
+		//console.log("%s------------------", Bun.color("gray", "ansi"));
 		classMap[component] = ckv;
 	},
 	VariableDeclarator(decl) {
@@ -222,4 +227,4 @@ const visitor = new Visitor({
 });
 visitor.visit(program);
 //console.log(classMap);
-console.log("-----", { classNameByVariableName });
+//console.log("-----", { classNameByVariableName });

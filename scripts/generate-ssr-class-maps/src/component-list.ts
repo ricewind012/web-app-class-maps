@@ -1,5 +1,5 @@
 import type { Function as OxcFunction } from "oxc-parser";
-import { getFuncReturn } from "./ast-utils";
+import { getFuncReturn, getReactComponentProps } from "./ast-utils";
 import { getClassNamesFromChildren } from "./class-name-utils";
 
 export type OkValveComponent =
@@ -21,7 +21,7 @@ export type OkValveComponent =
 	| "tw_toggle"
 	| "workshopitemcontainer";
 
-export type NotOkValveComponent = "steamavatar";
+export type NotOkValveComponent = "communitytemplate" | "steamavatar";
 
 /**
  * Filter for the classes found in objects.
@@ -46,12 +46,11 @@ export const componentClassNameFilterMap: Record<OkValveComponent, string> = {
 };
 
 /**
- * Class map that corresponds for each React prop. Used for
- * {@link getClassNamesFromClassnamesCall}.
+ * Class map that corresponds for each React prop. Used for conditional objects
+ * in {@link getClassNamesFromClassnamesCall}.
  */
-export const componentPropMap: Record<
-	NotOkValveComponent,
-	Map<string, string>
+export const componentClassnamePropMap: Partial<
+	Record<NotOkValveComponent, Map<string, string>>
 > = {
 	steamavatar: new Map([
 		["isOnline", "Online"],
@@ -74,6 +73,10 @@ export const componentManualMap: Record<
 	NotOkValveComponent,
 	Map<string, string>
 > = {
+	communitytemplate: new Map([
+		["strWebAPIToken", "Body"],
+		["children", "Root"],
+	]),
 	steamavatar: new Map([
 		["rgSources", "Avatar"],
 		["bDisableAnimation", "AvatarFrame"],
@@ -90,8 +93,17 @@ export const componentPropFilterMap: Record<
 	NotOkValveComponent,
 	Set<string>
 > = {
+	communitytemplate: new Set(["strWebAPIToken"]),
 	steamavatar: new Set(["avatarURL", "bDisableAnimation"]),
 };
+
+function uniquelyIdReactComponent(decl: OxcFunction) {
+	const info = {
+		props: getReactComponentProps(decl),
+	};
+
+	return { decl, info };
+}
 
 /**
  * These are implied to be React components, so do not check if they are.
@@ -100,14 +112,24 @@ export const componentVisitors: Record<
 	NotOkValveComponent,
 	(decl: OxcFunction) => [string, string][]
 > = {
+	communitytemplate: (decl) => {
+		const ret = getFuncReturn(decl);
+		if (ret?.type !== "CallExpression") {
+			return [];
+		}
+
+		console.log(uniquelyIdReactComponent(decl));
+		return [];
+		//return getClassNamesFromChildren(ret, true);
+	},
 	steamavatar: (decl) => {
-		const arg = getFuncReturn(decl);
-		if (arg?.type !== "SequenceExpression") {
+		const ret = getFuncReturn(decl);
+		if (ret?.type !== "SequenceExpression") {
 			return [];
 		}
 
 		// return statement
-		const call = arg.expressions.findLast((e) => e.type === "CallExpression");
+		const call = ret.expressions.findLast((e) => e.type === "CallExpression");
 		if (!call) {
 			return [];
 		}
