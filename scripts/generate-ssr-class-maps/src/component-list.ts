@@ -1,5 +1,5 @@
-import type { Function as OxcFunction } from "oxc-parser";
-import { getFuncReturn, getReactComponentProps } from "./ast-utils";
+import { type Function as OxcFunction } from "oxc-parser";
+import { getFuncReturn } from "./ast-utils";
 import { getClassNamesFromChildren } from "./class-name-utils";
 
 export type OkValveComponent =
@@ -97,14 +97,6 @@ export const componentPropFilterMap: Record<
 	steamavatar: new Set(["avatarURL", "bDisableAnimation"]),
 };
 
-function uniquelyIdReactComponent(decl: OxcFunction) {
-	const info = {
-		props: getReactComponentProps(decl),
-	};
-
-	return { decl, info };
-}
-
 /**
  * These are implied to be React components, so do not check if they are.
  */
@@ -118,7 +110,6 @@ export const componentVisitors: Record<
 			return [];
 		}
 
-		console.log(uniquelyIdReactComponent(decl));
 		return [];
 		//return getClassNamesFromChildren(ret, true);
 	},

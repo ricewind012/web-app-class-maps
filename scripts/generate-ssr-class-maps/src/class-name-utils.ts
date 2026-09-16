@@ -2,8 +2,7 @@ import type {
 	CallExpression,
 	Expression,
 	IdentifierReference,
-	ObjectExpression,
-	TemplateLiteral,
+	VisitorObject,
 } from "oxc-parser";
 import { getFuncName } from "./ast-utils";
 import {
@@ -13,18 +12,28 @@ import {
 import { COMMON_REACT_PROPS } from "./consts";
 import { classNameByVariableName, currentComponent } from "./state";
 
-const classnameCallGetters: Partial<
-	// biome-ignore lint/suspicious/noExplicitAny: The arg types are all different
-	Record<Expression["type"], (arg: any) => [string, string][]>
-> = {
-	Identifier(arg: IdentifierReference) {
+type ChangeReturnType<F extends Function, T> = (...args: Parameters<F>) => T;
+
+// biome-ignore lint/suspicious/noExplicitAny: fuck off cunt
+type Function = (...args: any[]) => any;
+
+type ClassnameCallGetters<T = Required<VisitorObject>> = {
+	[K in keyof T]: K extends `${string}:exit`
+		? never
+		: T[K] extends Function
+			? ChangeReturnType<T[K], [string, string][]>
+			: never;
+};
+
+const classnameCallGetters: Partial<ClassnameCallGetters> = {
+	Identifier(node) {
 		const { props } = currentComponent;
-		return getIdentClassNamePair(arg, props);
+		return getIdentClassNamePair(node as IdentifierReference, props);
 	},
-	ObjectExpression(arg: ObjectExpression) {
+	ObjectExpression(node) {
 		const { component, props } = currentComponent;
 		const classes: [string, string][] = [];
-		for (const prop of arg.properties) {
+		for (const prop of node.properties) {
 			// Not a thing
 			if (prop.type === "SpreadElement") {
 				continue;
@@ -75,13 +84,11 @@ const classnameCallGetters: Partial<
 
 		return classes;
 	},
-	TemplateLiteral(arg: TemplateLiteral) {
-		// TODO
-	},
+	//TemplateLiteral(node) {},
 };
 
-const validClassnameCallGetterTypes = new Set<Expression["type"]>(
-	Object.keys(classnameCallGetters) as unknown as Expression["type"][],
+const validClassnameCallGetterTypes = new Set(
+	Object.keys(classnameCallGetters) as unknown as (keyof VisitorObject)[],
 );
 
 /**
@@ -106,10 +113,15 @@ export function getClassNamesFromClassnamesCall(expr: CallExpression) {
 			return [];
 		}
 
-		// it's defined, piss off typescript
-		const value = classnameCallGetters[arg.type]?.(arg);
+		// The key and argument are correlated at runtime, but TypeScript cannot
+		// preserve that correlation when indexing the mapped type with a union.
+		const getter = classnameCallGetters[arg.type] as unknown as (
+			node: Expression,
+		) => [string, string][];
+		const value = getter(arg);
 		if (!value) {
-			continue;
+			// TODO: not a thing?
+			//continue;
 		}
 
 		classNames.push(...value);

@@ -6,10 +6,12 @@ import {
 	parseSync,
 	Visitor,
 } from "oxc-parser";
+import { uniquelyIdReactComponent } from "./a";
 import {
 	getFuncName,
 	getReactComponentProps,
 	isReactComponent,
+	isSSRClassName,
 } from "./ast-utils";
 import {
 	componentClassNameFilterMap,
@@ -65,6 +67,11 @@ const visitor = new Visitor({
 		}
 	},
 	FunctionDeclaration(decl: OxcFunction) {
+		const { start, end } = decl;
+		const outer = text.slice(start, end);
+		const a = uniquelyIdReactComponent(outer);
+		a && console.log(a, "--------------------------");
+
 		changeFunctionDepth(true);
 
 		if (!isReactComponent(decl)) {
@@ -95,8 +102,8 @@ const visitor = new Visitor({
 			classMap[component][k] = v;
 		}
 
-		const { start, end } = decl;
-		const outer = text.slice(start, end);
+		//const { start, end } = decl;
+		//const outer = text.slice(start, end);
 		//console.log("-----------------", { outer, props });
 	},
 	"FunctionDeclaration:exit"() {
@@ -214,11 +221,7 @@ const visitor = new Visitor({
 			return;
 		}
 
-		// SSR classes are 12 characters long, with an underscore if starting
-		// with a number
-		const len = value.length;
-		const startsWithNumber = value[0] === "_" && len === 13;
-		if (len !== 12 && !startsWithNumber) {
+		if (!isSSRClassName(decl.init)) {
 			return;
 		}
 

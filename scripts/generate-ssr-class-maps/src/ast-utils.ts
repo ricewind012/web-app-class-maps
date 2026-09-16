@@ -1,4 +1,8 @@
-import type { CallExpression, Function as OxcFunction } from "oxc-parser";
+import type {
+	CallExpression,
+	Function as OxcFunction,
+	TemplateLiteral,
+} from "oxc-parser";
 
 /**
  * @returns `mod.useEffect` / `(0, mod.useEffect)` -> `useEffect`
@@ -96,6 +100,14 @@ export function getReactComponentProps(decl: OxcFunction) {
 }
 
 /**
+ * Is the expression `(0, mod.jsx)`?
+ */
+export function isJsxCall(expr: CallExpression) {
+	const name = getFuncName(expr);
+	return name === "jsx" || name === "jsxs";
+}
+
+/**
  * Does the expression return a React element?
  */
 export function isReactComponent(decl: OxcFunction) {
@@ -148,9 +160,12 @@ export function isReactComponent(decl: OxcFunction) {
 }
 
 /**
- * Is the expression `(0, mod.jsx)`?
+ * SSR classes are 12 characters long and end with a `-`, with an underscore if
+ * starting with a number.
  */
-export function isJsxCall(expr: CallExpression) {
-	const name = getFuncName(expr);
-	return name === "jsx" || name === "jsxs";
+export function isSSRClassName(node: TemplateLiteral) {
+	const value = node.quasis[0].value.raw;
+	const len = value.length;
+	const startsWithNumber = value[0] === "_" && len === 13;
+	return value.at(-1) === "-" && (len === 12 || startsWithNumber);
 }

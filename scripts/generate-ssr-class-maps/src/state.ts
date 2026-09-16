@@ -2,7 +2,10 @@ import type { NotOkValveComponent } from "./component-list";
 
 type ReactProps = Map<string, string>;
 
-interface Info {
+/**
+ * The currently visited component.
+ */
+interface CurrentReactComponent {
 	/**
 	 * The component name.
 	 */
@@ -14,14 +17,11 @@ interface Info {
 	props: ReactProps;
 }
 
-/**
- * Info about the currently visited component.
- */
-// @ts-expect-error: FUCK YOU
-export const currentComponent: Info = {};
-
 // k: minified var name, v: class name
 export const classNameByVariableName = new Map<string, string>();
+
+// @ts-expect-error: FUCK YOU
+export const currentComponent: CurrentReactComponent = {};
 
 // Tracks whether the visitor is currently inside a function while finding
 // top-level objects.
@@ -33,8 +33,4 @@ export function changeFunctionDepth(increase: boolean) {
 
 export function isInFunction() {
 	return functionNestingDepth > 0;
-}
-
-function setInfo<T extends keyof Info>(k: T, v: Info[T]) {
-	currentComponent[k] = v;
 }
