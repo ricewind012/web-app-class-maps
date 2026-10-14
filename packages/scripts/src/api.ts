@@ -2,11 +2,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type CDP from "chrome-remote-interface";
 import type { Protocol } from "devtools-protocol";
-import { lilconfig } from "lilconfig";
 import {
 	CDP_FILES_PATH,
 	CLASS_MAP_URL_PART,
-	DEFAULT_CONFIG,
 	SCRIPT_PATH,
 } from "./constants.js";
 import {
@@ -46,30 +44,11 @@ export type ScriptFile =
 	| "migrate"
 	| "replace-old-classes";
 
-export interface Config {
-	/**
-	 * Directories for the postcss plugin to ignore.
-	 *
-	 * For example:
-	 * ```json
-	 * ["steam/client/shared", "steam/web/vars"]
-	 * ```
-	 * will ignore `src/steam/client/shared` and `src/steam/web/vars`, assuming
-	 * the base dir is `src`.
-	 */
-	ignore: string[];
-}
-
 interface Script {
 	execute(arg?: string): Promise<void>;
 }
 
 const classMaps = new Map<Page, ClassModuleMap>();
-
-export const config: Config = Object.assign(
-	DEFAULT_CONFIG,
-	(await lilconfig("web-app-class-maps").search())?.config || {},
-);
 
 export const connection: CDP.Client = await (() => {
 	// postcss-cli hangs because of cdp
@@ -167,6 +146,7 @@ export function run(
 export async function runCdpFile(
 	file: string,
 	conn = connection,
+	// biome-ignore lint/suspicious/noExplicitAny: Intentional
 ): Promise<any> {
 	return runWithResult(
 		await fs.readFile(path.join(CDP_FILES_PATH, file), "utf8"),
@@ -181,6 +161,7 @@ export async function runCdpFile(
 export async function runWithResult(
 	expr: Expression,
 	conn = connection,
+	// biome-ignore lint/suspicious/noExplicitAny: Intentional
 ): Promise<any> {
 	const resp = await run(expr, conn);
 	return resp.result.value;

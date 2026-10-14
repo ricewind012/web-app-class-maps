@@ -1,7 +1,25 @@
 import path from "node:path";
-import { config, getClassMap, type Page } from "@web-app-class-maps/scripts";
+import { getClassMap, type Page } from "@web-app-class-maps/scripts";
 import type { PluginCreator } from "postcss";
 import yargs from "yargs";
+
+interface PluginOptions {
+	/**
+	 * Directories to ignore.
+	 *
+	 * For example:
+	 * ```json
+	 * ["steam/client/shared", "steam/web/vars"]
+	 * ```
+	 * will ignore `src/steam/client/shared` and `src/steam/web/vars`, assuming
+	 * the base dir is `src`.
+	 */
+	ignore: string[];
+}
+
+const DEFAULT_OPTIONS: PluginOptions = {
+	ignore: [],
+};
 
 const PAGES: Page[] = [
 	"steamaccountpreferences",
@@ -22,7 +40,9 @@ const argv = yargs(process.argv)
 	.parseSync();
 const cwd = process.cwd();
 
-export const selectorReplacementPlugin: PluginCreator<never> = () => ({
+export const selectorReplacementPlugin: PluginCreator<PluginOptions> = (
+	opts = DEFAULT_OPTIONS,
+) => ({
 	async Once(css) {
 		const { file } = css.source.input;
 		const fileName = path.basename(file);
@@ -48,15 +68,16 @@ export const selectorReplacementPlugin: PluginCreator<never> = () => ({
 
 		const modName = path.parse(fileName).name;
 		const mod = map[modName];
-		const ignoredPaths = config.ignore || [];
+		if (!mod) {
+			console.error("[%s] no such module", fileName);
+			return;
+		}
+
 		const src = path.join(cwd, argv.base);
-		const skipFile = ignoredPaths.some((e) =>
+		const skipFile = opts.ignore.some((e) =>
 			file.startsWith(path.join(src, e)),
 		);
-		if (!mod) {
-			if (!skipFile) {
-				console.error("[%s] no such module", fileName);
-			}
+		if (skipFile) {
 			return;
 		}
 

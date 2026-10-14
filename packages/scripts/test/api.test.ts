@@ -74,7 +74,7 @@ test("run forwards a JavaScript expression to the CDP runtime", async () => {
 });
 
 test("runCdpFile evaluates a helper file verbatim", async () => {
-	const response = await runCdpFile("make-readable-classes.ts", connection);
+	const response = await runCdpFile("make-readable-classes.js", connection);
 	expect(response).toBeUndefined();
 });
 
