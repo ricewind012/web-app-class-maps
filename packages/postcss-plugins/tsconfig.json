@@ -1,11 +1,7 @@
 {
 	"compilerOptions": {
-		"declaration": true,
-		"lib": ["esnext"],
 		"module": "nodenext",
-		"moduleDetection": "force",
-		"moduleResolution": "nodenext",
-		"outDir": "./dist",
+		"noEmit": true,
 		"rootDir": "./src",
 		"skipLibCheck": true,
 		"strictNullChecks": false,
