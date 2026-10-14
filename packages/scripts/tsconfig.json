@@ -1,16 +1,13 @@
 {
 	"compilerOptions": {
-		"declaration": true,
-		"lib": ["esnext"],
 		"module": "nodenext",
-		"moduleDetection": "force",
-		"moduleResolution": "nodenext",
-		"outDir": "./dist",
+		"noEmit": true,
 		"rootDir": "./src",
+		// for find-process
 		"skipLibCheck": true,
 		"strictNullChecks": false,
 		"types": ["node"]
 	},
 	"exclude": ["./src/cdp"],
-	"include": ["./src", "./src/lib"]
+	"include": ["./src"]
 }

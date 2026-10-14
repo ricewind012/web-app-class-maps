@@ -1,0 +1,9 @@
+{
+	"exports": "./src/api.ts",
+	"name": "@web-app-class-maps/scripts",
+	"publish": {
+		"exclude": ["./src/cdp"],
+		"include": ["./dist/cdp", "./src"]
+	},
+	"version": "0.9.9"
+}

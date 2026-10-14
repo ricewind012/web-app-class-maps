@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type CDP from "chrome-remote-interface";
 import type { Protocol } from "devtools-protocol";
 import { lilconfig } from "lilconfig";
 import {
@@ -70,7 +71,7 @@ export const config: Config = Object.assign(
 	(await lilconfig("web-app-class-maps").search())?.config || {},
 );
 
-export const connection = await (() => {
+export const connection: CDP.Client = await (() => {
 	// postcss-cli hangs because of cdp
 	const isPostcss = path.basename(process.argv[1]) === "postcss";
 	if (isPostcss) {
@@ -88,7 +89,7 @@ export const connection = await (() => {
 /**
  * Gets a class map. Downloads it if not yet cached.
  */
-export async function getClassMap(page: Page) {
+export async function getClassMap(page: Page): Promise<ClassModuleMap> {
 	if (classMaps.has(page)) {
 		return classMaps.get(page);
 	}
@@ -163,7 +164,10 @@ export function run(
  * Reads and evaluates a helper script from the `cdp` directory and returns its
  * resolved value.
  */
-export async function runCdpFile(file: string, conn = connection) {
+export async function runCdpFile(
+	file: string,
+	conn = connection,
+): Promise<any> {
 	return runWithResult(
 		await fs.readFile(path.join(CDP_FILES_PATH, file), "utf8"),
 		conn,
@@ -174,7 +178,10 @@ export async function runCdpFile(file: string, conn = connection) {
  * Evaluates a JavaScript expression and returns its resolved value. Only use if
  * certain the expression never fails.
  */
-export async function runWithResult(expr: Expression, conn = connection) {
+export async function runWithResult(
+	expr: Expression,
+	conn = connection,
+): Promise<any> {
 	const resp = await run(expr, conn);
 	return resp.result.value;
 }
@@ -182,6 +189,6 @@ export async function runWithResult(expr: Expression, conn = connection) {
 /**
  * Waits for the specified number of milliseconds.
  */
-export function sleep(ms: number) {
+export function sleep(ms: number): Promise<void> {
 	return new Promise((r) => setTimeout(r, ms));
 }

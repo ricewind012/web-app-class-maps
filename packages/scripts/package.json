@@ -1,10 +1,10 @@
 {
 	"name": "@web-app-class-maps/scripts",
 	"version": "0.9.9",
-	"description": "A collection of scripts for easier and future-proof web app theming",
+	"description": "Replace obfuscated CSS class names for easier and future-proof theming",
 	"type": "module",
 	"scripts": {
-		"build": "rm -rf dist && tsc && tsc -p tsconfig-cdp.json"
+		"build": "rm -rf dist && tsc -p tsconfig-cdp.json"
 	},
 	"dependencies": {
 		"chrome-remote-interface": "^0.34.0",
@@ -19,15 +19,15 @@
 		"typescript": "^7.0.2"
 	},
 	"bin": {
-		"@web-app-class-maps/scripts": "./dist/index.js"
+		"@web-app-class-maps/scripts": "./src/index.ts"
 	},
-	"exports": "./dist/api.js",
+	"exports": "./src/api.ts",
 	"files": [
-		"dist"
+		"dist/cdp",
+		"src"
 	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/ricewind012/web-app-class-maps.git"
-	},
-	"types": "./dist/api.d.ts"
+	}
 }

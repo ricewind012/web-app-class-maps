@@ -1,13 +1,10 @@
 # web-app-class-maps
 
-A collection of scripts for easier and future-proof web app theming.
+Replace obfuscated CSS class names for easier and future-proof theming.
 
-## Usage
+You can see it in action in [this template][template].
 
-```
-$ bun i @web-app-class-maps/scripts
-$ bun x @web-app-class-maps/scripts <app> <script> <page>
-```
+Currently the only supported one is Steam, because nothing else fully obfuscates their class names.
 
 ## Scripts
 
@@ -41,16 +38,13 @@ Note that, for Steam, directories have to be named `apppage` instead of `steamap
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
 | #ClassName is undefined   | Typo or that class either got renamed or removed, and so you will have to update it yourself.     |
 | [mod_name] no such module | Typo or that module either got renamed or removed, see diffs [here][diffs] depending on the page. |
-| [map_name] no such map    | Use `bun x @web-app-class-maps/scripts <app> build-class-modules map_name` to create it.          |
-
-<!-- TODO: is the last one obsolete ? -->
 
 ## Config
 
 Configured through a `web-app-class-maps.config.js` (or the one from [here][config-files]) file that must `export default` an [object][config-docs]. It's optional and has defaults listed [here][config-defaults].
 
 [classes-preview]: ./assets/classes-preview.png
-[config-defaults]: https://github.com/ricewind012/web-app-class-maps/blob/master/packages/web-app-class-maps/constants.ts#L11-13
+[config-defaults]: https://github.com/ricewind012/web-app-class-maps/blob/master/packages/scripts/src/constants.ts#L11-13
 [config-docs]: https://github.com/ricewind012/web-app-class-maps/blob/master/packages/scripts/src/api.ts#L48-L60
 [config-files]: https://github.com/cosmiconfig/cosmiconfig#usage-for-end-users
 [diffs]: https://github.com/ricewind012/web-app-class-maps/tree/data
