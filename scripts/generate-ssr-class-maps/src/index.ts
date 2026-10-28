@@ -1,33 +1,46 @@
 import { readFile } from "node:fs/promises";
-import Bun from "bun";
 import {
 	type Expression,
+	type Function as OxcFunction,
 	type PropertyKey,
 	parseSync,
 	Visitor,
 } from "oxc-parser";
+import { uniquelyIdReactComponent } from "./a";
+import {
+	getFuncName,
+	getReactComponentProps,
+	isReactComponent,
+	isSSRClassName,
+} from "./ast-utils";
+import {
+	componentClassNameFilterMap,
+	componentPropFilterMap,
+	componentVisitors,
+	type NotOkValveComponent,
+	type OkValveComponent,
+} from "./component-list";
+import { BLACKLISTED_OBJ_EXPR_KEYS } from "./consts";
+import {
+	changeFunctionDepth,
+	classNameByVariableName,
+	currentComponent,
+	isInFunction,
+} from "./state";
 
-type OkValveComponent =
-	| "contextmenu"
-	| "pagedsettings"
-	// lol
-	| "sharedsvggamerecordings"
-	| "tw_button"
-	| "tw_checkbox"
-	| "tw_controlbox"
-	| "tw_heading"
-	| "tw_icon"
-	| "tw_layout"
-	| "tw_link"
-	| "tw_segmentedcontrol"
-	| "tw_separator"
-	| "tw_spinner"
-	| "tw_text"
-	| "tw_toggle"
-	| "workshopitemcontainer";
+/*
+const a = await (
+	await fetch("https://steamcommunity.com/workshop/browse/?appid=312520")
+).text();
+const hrefs = [
+	...a.matchAll(/<link rel="modulepreload" href="(https.*?\.js)" as="script"/g),
+	...a.matchAll(/<script type="module" src="(https.*?\.js)" nonce/g),
+].map((e) => e[1]);
+*/
 
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
+(globalThis as typeof globalThis & { text: string }).text = text;
 // TODO: some files only export class names... wtf
 /*
 if (text.includes("<1>") || text.slice(0, 6) !== "import") {
@@ -42,47 +55,63 @@ if (errors.length > 0) {
 	process.exit(1);
 }
 
-/**
- * Filter for the classes found in objects.
- */
-const componentClassNameFilterMap: Record<OkValveComponent, string> = {
-	contextmenu: "contextMenu",
-	pagedsettings: "PagedSettingsDialog",
-	sharedsvggamerecordings: "RecordingIconContainer",
-	tw_button: "Button",
-	tw_checkbox: "Checkbox",
-	tw_controlbox: "ControlBox",
-	tw_heading: "Heading", // HeadingSize-1
-	tw_icon: "IconSizeDefault",
-	tw_layout: "ZIndex",
-	tw_link: "TextLinkButton",
-	tw_segmentedcontrol: "SegmentedControl",
-	tw_separator: "Separator",
-	tw_spinner: "Spinner",
-	tw_text: "WhiteSpace",
-	tw_toggle: "Track",
-	workshopitemcontainer: "aspectratio_square",
-};
-
-const classMap: Partial<Record<OkValveComponent, Record<string, string>>> = {};
-
-// k: minified var name, v: class name
-const classNameByVariableName = new Map<string, string>();
-
-// Tracks whether the visitor is currently inside a function while finding
-// top-level objects.
-let functionNestingDepth = 0;
+const classMap: Partial<
+	Record<OkValveComponent | NotOkValveComponent, Record<string, string>>
+> = {};
 
 const visitor = new Visitor({
-	FunctionDeclaration() {
-		functionNestingDepth++;
+	CallExpression(decl) {
+		const funcName = getFuncName(decl);
+		if (funcName?.startsWith("Localize")) {
+			//console.log({ decl });
+		}
+	},
+	FunctionDeclaration(decl: OxcFunction) {
+		const { start, end } = decl;
+		const outer = text.slice(start, end);
+		const a = uniquelyIdReactComponent(outer);
+		a && console.log(a, "--------------------------");
+
+		changeFunctionDepth(true);
+
+		if (!isReactComponent(decl)) {
+			return;
+		}
+
+		const props = getReactComponentProps(decl);
+		if (!props) {
+			return;
+		}
+
+		const names = [...props.values()];
+		const component = (
+			Object.keys(componentPropFilterMap) as NotOkValveComponent[]
+		).find((k) => names.some((e) => componentPropFilterMap[k].has(e)));
+		// No component, bye
+		if (!component) {
+			return;
+		}
+
+		currentComponent.component = component;
+		currentComponent.props = props;
+		const classes = componentVisitors[component](decl);
+		if (!classMap[component]) {
+			classMap[component] = {};
+		}
+		for (const [k, v] of classes) {
+			classMap[component][k] = v;
+		}
+
+		//const { start, end } = decl;
+		//const outer = text.slice(start, end);
+		//console.log("-----------------", { outer, props });
 	},
 	"FunctionDeclaration:exit"() {
-		functionNestingDepth--;
+		changeFunctionDepth(false);
 	},
 	ObjectExpression(decl) {
 		// Only inspect top-level objects
-		if (functionNestingDepth !== 0) {
+		if (isInFunction()) {
 			return;
 		}
 
@@ -98,13 +127,6 @@ const visitor = new Visitor({
 				continue;
 			}
 
-			const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
-				// Common React props
-				"children",
-				"className",
-				// BB code init objects
-				"Constructor",
-			]);
 			const k = prop.key;
 			if (k.type === "Identifier" && BLACKLISTED_OBJ_EXPR_KEYS.has(k.name)) {
 				return;
@@ -152,6 +174,7 @@ const visitor = new Visitor({
 		}
 
 		const ckv: Record<string, string> = {};
+		/*
 		const keyWidth = Math.max(...pairs.map(([k]) => k.length));
 		const valueWidth = Math.max(...pairs.map(([, v]) => v.length));
 		console.log(
@@ -160,8 +183,10 @@ const visitor = new Visitor({
 			Bun.color("white", "ansi"),
 			component,
 		);
+		*/
 		for (const [k, v] of pairs) {
 			ckv[k] = v;
+			/*
 			console.log(
 				"%s%s %s-> %s%s",
 				Bun.color("white", "ansi"),
@@ -170,8 +195,9 @@ const visitor = new Visitor({
 				Bun.color("white", "ansi"),
 				v.padEnd(valueWidth),
 			);
+			*/
 		}
-		console.log("%s------------------", Bun.color("gray", "ansi"));
+		//console.log("%s------------------", Bun.color("gray", "ansi"));
 		classMap[component] = ckv;
 	},
 	VariableDeclarator(decl) {
@@ -195,11 +221,7 @@ const visitor = new Visitor({
 			return;
 		}
 
-		// SSR classes are 12 characters long, with an underscore if starting
-		// with a number
-		const len = value.length;
-		const startsWithNumber = value[0] === "_" && len === 13;
-		if (len !== 12 && !startsWithNumber) {
+		if (!isSSRClassName(decl.init)) {
 			return;
 		}
 
@@ -207,3 +229,5 @@ const visitor = new Visitor({
 	},
 });
 visitor.visit(program);
+//console.log(classMap);
+//console.log("-----", { classNameByVariableName });
