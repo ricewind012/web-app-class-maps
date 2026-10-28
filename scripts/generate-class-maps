@@ -3,6 +3,7 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
+import { $ } from "bun";
 import { type Page, readScript } from "../packages/scripts/dist/api";
 
 const PAGES: Page[] = [
@@ -36,3 +37,14 @@ for (const page of PAGES) {
 		await script.execute(page).catch(() => {});
 	}
 }
+
+await $`git checkout data`;
+const changes = await $`git status --short`.text();
+if (!changes) {
+	console.log("No class map changes to push.");
+	process.exit();
+}
+
+await $`git add -- ${PAGES.map((page) => `${page}.json`)}`;
+await $`git commit -m "Regenerate class maps"`;
+await $`git push`;
