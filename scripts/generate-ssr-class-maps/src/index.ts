@@ -6,7 +6,6 @@ import {
 	parseSync,
 	Visitor,
 } from "oxc-parser";
-import { uniquelyIdReactComponent } from "./a";
 import {
 	getFuncName,
 	getReactComponentProps,
@@ -69,8 +68,6 @@ const visitor = new Visitor({
 	FunctionDeclaration(decl: OxcFunction) {
 		const { start, end } = decl;
 		const outer = text.slice(start, end);
-		const a = uniquelyIdReactComponent(outer);
-		a && console.log(a, "--------------------------");
 
 		changeFunctionDepth(true);
 
@@ -230,4 +227,3 @@ const visitor = new Visitor({
 });
 visitor.visit(program);
 //console.log(classMap);
-//console.log("-----", { classNameByVariableName });

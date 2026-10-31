@@ -94,7 +94,7 @@ const validClassnameCallGetterTypes = new Set(
 /**
  * @returns `(0, mod.default)(a, b, c)` -> `["value for a", "value for b"]`.
  */
-export function getClassNamesFromClassnamesCall(expr: CallExpression) {
+function getClassNamesFromClassnamesCall(expr: CallExpression) {
 	const name = getFuncName(expr);
 	// It's the ONLY default export for some reason
 	if (name !== "default") {
@@ -223,7 +223,7 @@ export function getClassNamesFromChildren(
 	return pairs;
 }
 
-export function getIdentClassNamePair(
+function getIdentClassNamePair(
 	ident: IdentifierReference,
 	props: Map<string, string>,
 ): [string, string][] {

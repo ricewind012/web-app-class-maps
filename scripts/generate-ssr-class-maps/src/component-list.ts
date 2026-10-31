@@ -1,4 +1,4 @@
-import { type Function as OxcFunction } from "oxc-parser";
+import type { Function as OxcFunction } from "oxc-parser";
 import { getFuncReturn } from "./ast-utils";
 import { getClassNamesFromChildren } from "./class-name-utils";
 
@@ -21,7 +21,7 @@ export type OkValveComponent =
 	| "tw_toggle"
 	| "workshopitemcontainer";
 
-export type NotOkValveComponent = "communitytemplate" | "steamavatar";
+export type NotOkValveComponent = "steamavatar";
 
 /**
  * Filter for the classes found in objects.
@@ -73,10 +73,6 @@ export const componentManualMap: Record<
 	NotOkValveComponent,
 	Map<string, string>
 > = {
-	communitytemplate: new Map([
-		["strWebAPIToken", "Body"],
-		["children", "Root"],
-	]),
 	steamavatar: new Map([
 		["rgSources", "Avatar"],
 		["bDisableAnimation", "AvatarFrame"],
@@ -93,7 +89,6 @@ export const componentPropFilterMap: Record<
 	NotOkValveComponent,
 	Set<string>
 > = {
-	communitytemplate: new Set(["strWebAPIToken"]),
 	steamavatar: new Set(["avatarURL", "bDisableAnimation"]),
 };
 
@@ -104,15 +99,6 @@ export const componentVisitors: Record<
 	NotOkValveComponent,
 	(decl: OxcFunction) => [string, string][]
 > = {
-	communitytemplate: (decl) => {
-		const ret = getFuncReturn(decl);
-		if (ret?.type !== "CallExpression") {
-			return [];
-		}
-
-		return [];
-		//return getClassNamesFromChildren(ret, true);
-	},
 	steamavatar: (decl) => {
 		const ret = getFuncReturn(decl);
 		if (ret?.type !== "SequenceExpression") {
