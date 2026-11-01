@@ -1,27 +1,7 @@
-import type { NotOkValveComponent } from "./component-list";
-
-type ReactProps = Map<string, string>;
-
-/**
- * The currently visited component.
- */
-interface CurrentReactComponent {
-	/**
-	 * The component name.
-	 */
-	component: NotOkValveComponent;
-
-	/**
-	 * React props of the component.
-	 */
-	props: ReactProps;
-}
+import type { ReactComponentInfo } from "./react-component-id";
 
 // k: minified var name, v: class name
-export const classNameByVariableName = new Map<string, string>();
-
-// @ts-expect-error: FUCK YOU
-export const currentComponent: CurrentReactComponent = {};
+export const classNameByVarName = new Map<string, string>();
 
 // Tracks whether the visitor is currently inside a function while finding
 // top-level objects.
@@ -34,3 +14,18 @@ export function changeFunctionDepth(increase: boolean) {
 export function isInFunction() {
 	return functionNestingDepth > 0;
 }
+
+// referenced by index
+interface State {
+	readonly classes: string[][];
+	readonly classesInlined: string[][];
+	readonly components: ReactComponentInfo[][];
+	index: number;
+}
+
+export const state: State = {
+	classes: [],
+	classesInlined: [],
+	components: [],
+	index: 0,
+};

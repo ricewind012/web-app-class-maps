@@ -37,72 +37,15 @@ export function getFuncName(expr: CallExpression) {
 /**
  * @returns the function's `return`.
  */
-export function getFuncReturn(decl: OxcFunction) {
+function getFuncReturn(decl: OxcFunction) {
 	const ret = decl.body?.body.find((e) => e.type === "ReturnStatement");
-	// Returns nothing
-	if (!ret) {
-		return;
-	}
-
-	return ret.argument;
-}
-
-/**
- * Caveats:
- * - the props are just the first variable declaration
- * - only works on components whose props are getting *instantly* destructed
- *
- * @returns `let { className: i, ...a } = e` -> `Map { "i": "className" }`
- */
-export function getReactComponentProps(decl: OxcFunction) {
-	// React components only accept props
-	if (decl.params.length !== 1) {
-		return;
-	}
-
-	const varDecl = decl.body?.body.find((e) => e.type === "VariableDeclaration");
-	if (!varDecl) {
-		return;
-	}
-
-	// Usually the first
-	const [propsDecl] = varDecl.declarations;
-	if (propsDecl.id.type !== "ObjectPattern") {
-		return;
-	}
-
-	const props = new Map<string, string>();
-	for (const prop of propsDecl.id.properties) {
-		if (prop.type !== "Property") {
-			continue;
-		}
-
-		const { key, value } = prop;
-		// Prop has a default value
-		if (value.type === "AssignmentPattern") {
-			if (key.type !== "Identifier" || value.left.type !== "Identifier") {
-				continue;
-			}
-
-			props.set(value.left.name, key.name);
-			continue;
-		}
-
-		if (key.type !== "Identifier" || value.type !== "Identifier") {
-			continue;
-		}
-
-		// Reverse to match others' behavior
-		props.set(value.name, key.name);
-	}
-
-	return props;
+	return ret?.argument;
 }
 
 /**
  * Is the expression `(0, mod.jsx)`?
  */
-export function isJsxCall(expr: CallExpression) {
+function isJsxCall(expr: CallExpression) {
 	const name = getFuncName(expr);
 	return name === "jsx" || name === "jsxs";
 }
@@ -126,8 +69,13 @@ export function isReactComponent(decl: OxcFunction) {
 		return false;
 	}
 
-	const arg = getFuncReturn(decl);
-	// what XD
+	let arg = getFuncReturn(decl);
+	// Find the jsx call if conditionally rendered
+	if (arg?.type === "ConditionalExpression") {
+		arg = [arg.consequent, arg.alternate].find(
+			(e) => e.type === "CallExpression" && isJsxCall(e),
+		);
+	}
 	if (!arg) {
 		return false;
 	}

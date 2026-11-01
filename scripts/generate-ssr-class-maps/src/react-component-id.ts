@@ -1,21 +1,26 @@
-import { type ObjectExpression, parseSync, Visitor } from "oxc-parser";
-import { getFuncName, isJsxCall, isSSRClassName } from "./ast-utils";
+import {
+	type ObjectExpression,
+	parseSync,
+	type Span,
+	Visitor,
+} from "oxc-parser";
+import { getFuncName, isSSRClassName } from "./ast-utils";
 
 export interface ReactComponentInfo {
+	/** currently unused, may be helpful later */
 	calls: Set<string>;
 	/** inlined */
 	classes: Set<string>;
-	depth: number;
 	keys: Set<string>;
-	outer: string;
 	strings: Set<string>;
 }
 
 /**
- * Extracts the property names of an object literal.
+ * Extracts the property names of an object.
  *
  * @example
- * ```ts
+ * ```js
+ * // (an ObjectExpression, obviously)
  * const value = {
  *   className: "body",
  *   id: "dialog",
@@ -27,9 +32,9 @@ export interface ReactComponentInfo {
  * // => ["className", "id", "data-testid", "children"]
  * ```
  */
-function getObjectKeys(decl: ObjectExpression) {
+function getObjectKeys(node: ObjectExpression) {
 	const keys: string[] = [];
-	for (const prop of decl.properties) {
+	for (const prop of node.properties) {
 		if (prop.type !== "Property" || prop.key.type !== "Identifier") {
 			continue;
 		}
@@ -44,21 +49,20 @@ function getObjectKeys(decl: ObjectExpression) {
  * Deserializes a React component function body and gathers certain metadata
  * about it.
  *
- * @param parent Used internally for recursive traversal so nested JSX calls can
- * be analyzed without infinitely recursing.
+ * @param componentOuter The component's function definition
  *
  * @example
- * ```ts
- * const component = "function Pa(e){return(0,I.jsx)(St,{level:`3`,color:`dull-12`,weight:`heavy`,className:va,...e})}";
- *
+ * ```js
+ * const component = "function Pa(e){return(0,I.jsx)(St,{level:`3`,color:`dull-12`,weight:`heavy`,className:`aw6Om0V9rvM-`,...e})}";
  * const info = uniquelyIdReactComponent(component);
  * console.log(info);
- * // {
+ * // => {
  * //   calls: Set(1) {
  * //     "jsx",
  * //   },
- * //   count: 136,
- * //   depth: 0,
+ * //   classes: Set(1) {
+ * //     "aw6Om0V9rvM-",
+ * //   },
  * //   keys: Set(3) {
  * //     "color",
  * //     "level",
@@ -69,28 +73,27 @@ function getObjectKeys(decl: ObjectExpression) {
  * //     "dull-12",
  * //     "heavy",
  * //   },
- * //   outer: "function Pa(e){return(0,I.jsx)(St,{level:`3`,color:`dull-12`,weight:`heavy`,className:va,...e})}",
  * // }
  * ```
  */
-export function uniquelyIdReactComponent(
-	componentOuter: string,
-	parent = true,
-) {
-	if (!componentOuter.toLowerCase().includes("classname:")) {
+export function uniquelyIdReactComponent(text: string, span: Span) {
+	// Instantly bail out if it doesn't use the className prop
+	// TODO: why? doesn't work without it, though
+	const { start, end } = span;
+	const outer = text.slice(start, end);
+	if (!outer.toLowerCase().includes("classname:")) {
 		return;
 	}
 
 	// Wrap in parentheses for anonymous functions used with forwardRef/memo
-	const { errors, program } = parseSync("a.js", `(${componentOuter})`);
+	const { errors, program } = parseSync("a.js", `(${outer})`);
 	if (errors.length > 0) {
 		console.error(errors.map((e) => e.codeframe).join("\n"));
 		return;
 	}
 
 	// info
-	let depth = 0;
-	// these later get converted into *sorted* sets
+	// these later get converted into *sorted* sets, classes should not
 	const calls: string[] = [];
 	const classes = new Set<string>();
 	const keys: string[] = [];
@@ -101,32 +104,10 @@ export function uniquelyIdReactComponent(
 		CallExpression(node) {
 			const funcName = getFuncName(node);
 			if (!funcName) {
-				// TODO lol wtf
-				//console.log(componentOuter.slice(node.start, node.end));
 				return;
 			}
 
 			calls.push(funcName);
-			if (!parent || !isJsxCall(node)) {
-				return;
-			}
-
-			depth++;
-
-			/*
-			const { start, end } = node;
-			const outer = componentOuter.slice(start, end);
-			console.log({ depth, node, outer });
-			const a = uniquelyIdReactComponent(outer, false);
-			a && console.log({ a });
-			*/
-		},
-		"CallExpression:exit"(node) {
-			if (!isJsxCall(node)) {
-				return;
-			}
-
-			depth--;
 		},
 		// Used only for plain object keys, as they can't be template literals
 		Literal(node) {
@@ -144,20 +125,6 @@ export function uniquelyIdReactComponent(
 			}
 
 			const real = getObjectKeys(node);
-			// TODO: why
-			if (!real.includes("className")) {
-				return;
-			}
-
-			// TODO: why
-			const props = node.properties.filter((e) => e.type === "Property");
-			const needed = props.find(
-				(e) => e.key.type === "Identifier" && e.key.name === "className",
-			);
-			if (!needed) {
-				return;
-			}
-
 			keys.push(...real);
 		},
 		TemplateLiteral(node) {
@@ -167,6 +134,8 @@ export function uniquelyIdReactComponent(
 				return;
 			}
 
+			// This only finds the first part of a template literal, but it's
+			// fine, since it's what is usually needed
 			const value = node.quasis[0].value.raw;
 			strings.push(value);
 		},
@@ -208,15 +177,11 @@ export function uniquelyIdReactComponent(
 	});
 	visitor.visit(program);
 
-	// biome-ignore assist/source/useSortedKeys: dadsdda
 	const info: ReactComponentInfo = {
 		calls: new Set(calls.toSorted()),
 		classes,
-		depth,
 		keys: new Set(keys.toSorted()),
 		strings: new Set(strings.toSorted()),
-		outer: componentOuter,
 	};
-
 	return info;
 }
