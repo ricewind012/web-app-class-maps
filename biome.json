@@ -9,11 +9,6 @@
 		}
 	},
 	"files": {
-		"includes": [
-			"**",
-			"!**/dist",
-			"!scripts/generate-ssr-class-maps/ssr",
-			"!**/package.json"
-		]
+		"includes": ["**", "!**/*.js", "!**/dist", "!**/package.json"]
 	}
 }

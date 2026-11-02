@@ -1,40 +1,57 @@
 import { readFile } from "node:fs/promises";
-import Bun from "bun";
+import { color } from "bun";
+import { parseSync, Visitor } from "oxc-parser";
+import { getFuncName, isReactComponent, isSSRClassName } from "./ast-utils";
+import { componentList } from "./class-name-lists/steam-web-shared";
+import { componentClassNameFilterMap } from "./class-name-lists/steam-web-shared-object";
 import {
-	type Expression,
-	type PropertyKey,
-	parseSync,
-	Visitor,
-} from "oxc-parser";
+	type ReactComponentInfo,
+	uniquelyIdReactComponent,
+} from "./react-component-id";
+import {
+	changeFunctionDepth,
+	classNameByVarName,
+	isInFunction,
+	state,
+} from "./state";
 
-type OkValveComponent =
-	| "contextmenu"
-	| "pagedsettings"
-	// lol
-	| "sharedsvggamerecordings"
-	| "tw_button"
-	| "tw_checkbox"
-	| "tw_controlbox"
-	| "tw_heading"
-	| "tw_icon"
-	| "tw_layout"
-	| "tw_link"
-	| "tw_segmentedcontrol"
-	| "tw_separator"
-	| "tw_spinner"
-	| "tw_text"
-	| "tw_toggle"
-	| "workshopitemcontainer";
+const COMMON_REACT_PROPS = new Set(["children", "className", "ref"]);
+const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
+	...COMMON_REACT_PROPS,
+	// BB code init objects
+	"Constructor",
+]);
+
+const c = {
+	gray: color("gray", "ansi"),
+	red: color("red", "ansi"),
+	white: color("white", "ansi"),
+};
+
+function printClasses(lhs: string[], rhs: string[]) {
+	// One of them may be bigger while filling up
+	const len = Math.max(lhs.length, rhs.length);
+	for (let i = 0; i < len; i++) {
+		const a = (lhs[i] ?? "").padStart(13);
+		const b = rhs[i] === "" ? [c.gray, "-- skipped --"].join("") : rhs[i];
+		console.log("%s %s|%s %s", a, c.gray, c.white, b);
+	}
+}
 
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
-// TODO: some files only export class names... wtf
-/*
-if (text.includes("<1>") || text.slice(0, 6) !== "import") {
-	console.error("Localization tokens");
+const errorMsg = (() => {
+	switch (true) {
+		case text.includes(" as language,"):
+			return "%s is a localization file";
+		case !text.includes("-`"):
+			return "%s has no class names";
+	}
+})();
+if (errorMsg) {
+	console.error(errorMsg, file);
 	process.exit(1);
 }
-*/
 
 const { errors, program } = parseSync(file, text);
 if (errors.length > 0) {
@@ -42,69 +59,59 @@ if (errors.length > 0) {
 	process.exit(1);
 }
 
-/**
- * Filter for the classes found in objects.
- */
-const componentClassNameFilterMap: Record<OkValveComponent, string> = {
-	contextmenu: "contextMenu",
-	pagedsettings: "PagedSettingsDialog",
-	sharedsvggamerecordings: "RecordingIconContainer",
-	tw_button: "Button",
-	tw_checkbox: "Checkbox",
-	tw_controlbox: "ControlBox",
-	tw_heading: "Heading", // HeadingSize-1
-	tw_icon: "IconSizeDefault",
-	tw_layout: "ZIndex",
-	tw_link: "TextLinkButton",
-	tw_segmentedcontrol: "SegmentedControl",
-	tw_separator: "Separator",
-	tw_spinner: "Spinner",
-	tw_text: "WhiteSpace",
-	tw_toggle: "Track",
-	workshopitemcontainer: "aspectratio_square",
-};
-
-const classMap: Partial<Record<OkValveComponent, Record<string, string>>> = {};
-
-// k: minified var name, v: class name
-const classNameByVariableName = new Map<string, string>();
-
-// Tracks whether the visitor is currently inside a function while finding
-// top-level objects.
-let functionNestingDepth = 0;
-
+const classMap = new Map<string, Record<string, string>>();
 const visitor = new Visitor({
-	FunctionDeclaration() {
-		functionNestingDepth++;
+	CallExpression(node) {
+		const name = getFuncName(node);
+		if (name !== "forwardRef" && name !== "memo") {
+			return;
+		}
+
+		const component = node.arguments[0];
+		const info = uniquelyIdReactComponent(text, component);
+		if (!info) {
+			return;
+		}
+
+		state.components[state.index] ||= [];
+		state.components[state.index].push(info);
+	},
+	FunctionDeclaration(node) {
+		changeFunctionDepth(true);
+		if (!isReactComponent(node)) {
+			return;
+		}
+
+		const info = uniquelyIdReactComponent(text, node);
+		if (!info) {
+			return;
+		}
+
+		state.components[state.index].push(info);
+		state.classesInlined[state.index].push(...info.classes);
 	},
 	"FunctionDeclaration:exit"() {
-		functionNestingDepth--;
+		changeFunctionDepth(false);
 	},
-	ObjectExpression(decl) {
+	// If the CSS module is referenced like[`this`] in the code, it will include
+	// both inlined classes, and the module itself right after
+	ObjectExpression(node) {
 		// Only inspect top-level objects
-		if (functionNestingDepth !== 0) {
+		if (isInFunction()) {
 			return;
 		}
 
-		const { start, end } = decl;
 		// Empty object
-		if (end - start === 2) {
+		if (node.properties.length === 0) {
 			return;
 		}
 
-		const objectProps: [PropertyKey, Expression][] = [];
-		for (const prop of decl.properties) {
+		const pairs: [string, string][] = [];
+		for (const prop of node.properties) {
 			if (prop.type !== "Property") {
 				continue;
 			}
 
-			const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
-				// Common React props
-				"children",
-				"className",
-				// BB code init objects
-				"Constructor",
-			]);
 			const k = prop.key;
 			if (k.type === "Identifier" && BLACKLISTED_OBJ_EXPR_KEYS.has(k.name)) {
 				return;
@@ -116,19 +123,14 @@ const visitor = new Visitor({
 				return;
 			}
 
-			objectProps.push([k, v]);
-		}
-
-		const pairs: [string, string][] = [];
-		for (const [k, v] of objectProps) {
 			if (k.type === "Literal" && v.type === "TemplateLiteral") {
 				// Raw string
 				pairs.push([String(k.value), v.quasis[0].value.raw]);
 			} else if (k.type === "Identifier" && v.type === "Identifier") {
 				// A variable is being used
-				const realClassName = classNameByVariableName.get(v.name);
+				const realClassName = classNameByVarName.get(v.name);
 				// They are all being declared *right before* the object, so
-				// it's safe to assume it's something else
+				// satisfy TypeScript
 				if (!realClassName) {
 					return;
 				}
@@ -137,14 +139,7 @@ const visitor = new Visitor({
 			}
 		}
 
-		// No classes, bye
-		if (pairs.length === 0) {
-			return;
-		}
-
-		const component = (
-			Object.keys(componentClassNameFilterMap) as OkValveComponent[]
-		).find((key) =>
+		const component = Object.keys(componentClassNameFilterMap).find((key) =>
 			pairs.some(([k]) => k === componentClassNameFilterMap[key]),
 		);
 		if (!component) {
@@ -152,58 +147,142 @@ const visitor = new Visitor({
 		}
 
 		const ckv: Record<string, string> = {};
-		const keyWidth = Math.max(...pairs.map(([k]) => k.length));
-		const valueWidth = Math.max(...pairs.map(([, v]) => v.length));
-		console.log(
-			"%sComponent: %s%s",
-			Bun.color("gray", "ansi"),
-			Bun.color("white", "ansi"),
-			component,
-		);
 		for (const [k, v] of pairs) {
 			ckv[k] = v;
-			console.log(
-				"%s%s %s-> %s%s",
-				Bun.color("white", "ansi"),
-				k.padEnd(keyWidth),
-				Bun.color("gray", "ansi"),
-				Bun.color("white", "ansi"),
-				v.padEnd(valueWidth),
-			);
 		}
-		console.log("%s------------------", Bun.color("gray", "ansi"));
-		classMap[component] = ckv;
+		classMap.set(component, ckv);
 	},
-	VariableDeclarator(decl) {
-		// Class name variables are always initialized
-		if (!decl.init) {
+	// VariableDeclarator isn't used because it would ++ the index on each
+	// variable declaration instead of once
+	VariableDeclaration(node) {
+		const classes: string[] = [];
+		const classesInlined: string[] = [];
+		const components: ReactComponentInfo[] = [];
+		for (const decl of node.declarations) {
+			// Class name variables are always initialized
+			if (!decl.init) {
+				continue;
+			}
+
+			if (decl.id.type !== "Identifier") {
+				continue;
+			}
+
+			// React component
+			if (decl.init.type === "CallExpression") {
+				const info = uniquelyIdReactComponent(text, decl.init);
+				if (!info) {
+					continue;
+				}
+
+				classesInlined.push(...info.classes);
+				components.push(info);
+				continue;
+			}
+
+			// SSR strings are always templates without variables
+			if (decl.init.type !== "TemplateLiteral" || decl.init.quasis.length > 1) {
+				continue;
+			}
+
+			const value = decl.init.quasis[0].value.raw;
+			// Data URIs, 0.01ms shaven off
+			if (value.slice(0, 5) === "data:") {
+				continue;
+			}
+
+			if (!isSSRClassName(decl.init)) {
+				continue;
+			}
+
+			classes.push(value);
+		}
+
+		if (classes.length === 0) {
+			if (classesInlined.length !== 0) {
+				state.classesInlined[state.index] = classesInlined;
+				state.components[state.index] = components;
+			}
 			return;
 		}
 
-		if (decl.id.type !== "Identifier") {
+		// If all variables pass the checks, this is a new CSS module "object".
+		// Immediately fill the arrays with existing info, the "components" and
+		// "classesInlined" keys are already from forwardRef/memo components
+		state.index++;
+		state.classes[state.index] = classes;
+		state.classesInlined[state.index] = classesInlined;
+		state.components[state.index] = components;
+	},
+	VariableDeclarator(node) {
+		if (node.id.type !== "Identifier") {
 			return;
 		}
 
 		// SSR strings are always templates without variables
-		if (decl.init.type !== "TemplateLiteral" || decl.init.quasis.length > 1) {
+		if (node.init?.type !== "TemplateLiteral" || node.init.quasis.length > 1) {
 			return;
 		}
 
-		const value = decl.init.quasis[0].value.raw;
+		const value = node.init.quasis[0].value.raw;
 		// Data URIs
 		if (value.slice(0, 5) === "data:") {
 			return;
 		}
 
-		// SSR classes are 12 characters long, with an underscore if starting
-		// with a number
-		const len = value.length;
-		const startsWithNumber = value[0] === "_" && len === 13;
-		if (len !== 12 && !startsWithNumber) {
+		if (!isSSRClassName(node.init)) {
 			return;
 		}
 
-		classNameByVariableName.set(decl.id.name, value);
+		classNameByVarName.set(node.id.name, value);
 	},
 });
 visitor.visit(program);
+
+// Start from 1, since variables are declared first
+for (let i = 1; i <= state.index; i++) {
+	const components = state.components[i];
+	outer: for (const info of components) {
+		for (const [name, listItem] of Object.entries(componentList)) {
+			if (!listItem.filter(info)) {
+				continue;
+			}
+
+			const lhs = state.classes[i];
+			const rhs = listItem.classes;
+			const lhsInline = state.classesInlined[i];
+			const rhsInline = listItem.classesInlined ?? lhsInline; // skip if it doesn't exist
+			const kv: Record<string, string> = {};
+			for (const [a, b] of [
+				[lhs, rhs],
+				[lhsInline, rhsInline],
+			]) {
+				// Check if they got changed... instantly error if so, because
+				// the rest is now bogus
+				if (a.length === b.length) {
+					for (let i = 0; i < a.length; i++) {
+						if (b[i] === "") {
+							continue;
+						}
+
+						kv[b[i]] = a[i];
+					}
+					classMap.set(name, kv);
+					continue;
+				}
+
+				const logInfo = { component: name, isInline: a === lhsInline };
+				console.error(
+					"Class name length doesn't match!\nInfo: %o\nList:",
+					logInfo,
+				);
+				printClasses(a, b);
+				process.exit(1);
+			}
+
+			//delete componentFilters[name];
+			break outer;
+		}
+	}
+}
+classMap.size !== 0 && console.log(classMap);
