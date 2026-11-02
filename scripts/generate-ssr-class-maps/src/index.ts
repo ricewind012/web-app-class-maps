@@ -29,15 +29,30 @@ const c = {
 };
 
 function printClasses(lhs: string[], rhs: string[]) {
-	for (let i = 0; i < lhs.length; i++) {
-		const a = lhs[i].padStart(13);
-		const b = rhs[i] ?? [c.red, "undefined", c.white].join("");
+	// One of them may be bigger while filling up
+	const len = Math.max(lhs.length, rhs.length);
+	for (let i = 0; i < len; i++) {
+		const a = (lhs[i] ?? "").padStart(13);
+		const b = rhs[i] === "" ? [c.gray, "-- skipped --"].join("") : rhs[i];
 		console.log("%s %s|%s %s", a, c.gray, c.white, b);
 	}
 }
 
 const [, , file] = process.argv;
 const text = await readFile(file, "utf8");
+const errorMsg = (() => {
+	switch (true) {
+		case text.includes(" as language,"):
+			return "%s is a localization file";
+		case !text.includes("-`"):
+			return "%s has no class names";
+	}
+})();
+if (errorMsg) {
+	console.error(errorMsg, file);
+	process.exit(1);
+}
+
 const { errors, program } = parseSync(file, text);
 if (errors.length > 0) {
 	console.error(errors);
@@ -184,6 +199,10 @@ const visitor = new Visitor({
 		}
 
 		if (classes.length === 0) {
+			if (classesInlined.length !== 0) {
+				state.classesInlined[state.index] = classesInlined;
+				state.components[state.index] = components;
+			}
 			return;
 		}
 
@@ -192,8 +211,8 @@ const visitor = new Visitor({
 		// "classesInlined" keys are already from forwardRef/memo components
 		state.index++;
 		state.classes[state.index] = classes;
-		state.components[state.index] = components;
 		state.classesInlined[state.index] = classesInlined;
+		state.components[state.index] = components;
 	},
 	VariableDeclarator(node) {
 		if (node.id.type !== "Identifier") {
@@ -224,17 +243,11 @@ visitor.visit(program);
 for (let i = 1; i <= state.index; i++) {
 	const components = state.components[i];
 	outer: for (const info of components) {
-		for (const [k, listItem] of Object.entries(componentList)) {
-			// TODO: this can still go through if it finds a diff component with
-			// the same list length/filter
+		for (const [name, listItem] of Object.entries(componentList)) {
 			if (!listItem.filter(info)) {
 				continue;
 			}
 
-			// Check if they got changed... instantly error if so, because the
-			// rest is now bogus
-			const msg =
-				"Class name length doesn't match!\nComponent: %s\nInline: %s\nList:";
 			const lhs = state.classes[i];
 			const rhs = listItem.classes;
 			const lhsInline = state.classesInlined[i];
@@ -244,6 +257,8 @@ for (let i = 1; i <= state.index; i++) {
 				[lhs, rhs],
 				[lhsInline, rhsInline],
 			]) {
+				// Check if they got changed... instantly error if so, because
+				// the rest is now bogus
 				if (a.length === b.length) {
 					for (let i = 0; i < a.length; i++) {
 						if (b[i] === "") {
@@ -252,24 +267,16 @@ for (let i = 1; i <= state.index; i++) {
 
 						kv[b[i]] = a[i];
 					}
-					classMap.set(k, kv);
+					classMap.set(name, kv);
 					continue;
 				}
 
-				console.log(`\n\n${k}`);
-				console.log("# CLASSES:");
-				printClasses(
-					lhs,
-					lhs.map((_, i) => rhs[i]),
+				const logInfo = { component: name, isInline: a === lhsInline };
+				console.error(
+					"Class name length doesn't match!\nInfo: %o\nList:",
+					logInfo,
 				);
-				console.log("\n# INLINED:");
-				printClasses(
-					lhsInline,
-					lhsInline.map((_, i) => rhsInline[i]),
-				);
-				console.error(msg, k, a === lhsInline, a.length, b.length);
 				printClasses(a, b);
-				console.log({ lhs, rhs });
 				process.exit(1);
 			}
 
@@ -278,4 +285,4 @@ for (let i = 1; i <= state.index; i++) {
 		}
 	}
 }
-console.log(classMap);
+classMap.size !== 0 && console.log(classMap);

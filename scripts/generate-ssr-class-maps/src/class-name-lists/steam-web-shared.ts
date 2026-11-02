@@ -188,8 +188,10 @@ export const componentList: Record<string, ComponentListItem> = {
 			"Visible",
 			"NewThrobber",
 			"ThrobberText",
-			"Throbber",
-			"blur",
+			// These two are from the duplicated main component that's not
+			// assigned to anything ??? Not worth "fixing"
+			// "Throbber",
+			// "blur",
 		],
 		filter: (info) => info.strings.has("SteamLogoThrobber"),
 	},
@@ -232,6 +234,15 @@ export const componentList: Record<string, ComponentListItem> = {
 			"GapY",
 		],
 		filter: (info) =>
-			info.strings.has("flow-children") && info.strings.has("grid"),
+			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
+			info.strings.has("flow-children") &&
+			info.strings.has("grid"),
+	},
+	tw_popoverlist: {
+		classes: ["Root", "Item"],
+		filter: (info) =>
+			info.strings.has(
+				"<PopoverListItem> must be a child of <PopoverListRoot>.",
+			),
 	},
 };
