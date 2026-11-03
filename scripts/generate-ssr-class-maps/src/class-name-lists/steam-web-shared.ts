@@ -144,7 +144,7 @@ export const componentList: Record<string, ComponentListItem> = {
 			"XButton",
 			"SimpleModalContentCtn",
 		],
-		classesInlined: ["SimpleModalDialogTitle"],
+		classesInlined: ["SimpleModalDialogTitle", "WideMode"],
 		filter: (info) => info.strings.has("SimpleModalDialog"),
 	},
 	steamavatar: {

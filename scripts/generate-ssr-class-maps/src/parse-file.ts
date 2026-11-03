@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import { color } from "bun";
 import { parseSync, Visitor } from "oxc-parser";
 import { getFuncName, isReactComponent, isSSRClassName } from "./ast-utils";
@@ -24,7 +23,6 @@ const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
 
 const c = {
 	gray: color("gray", "ansi"),
-	red: color("red", "ansi"),
 	white: color("white", "ansi"),
 };
 
@@ -38,15 +36,18 @@ function printClasses(lhs: string[], rhs: string[]) {
 	}
 }
 
-export async function parseFile(file: string) {
+export async function parseFile(source: string) {
 	const classMap = new Map<string, Record<string, string>>();
-	const text = await readFile(file, "utf8");
+	const file =
+		source
+			.slice(source.lastIndexOf("\n") + 1, source.length)
+			.match(/^\/\/# sourceMappingURL=(.*)\.map$/)?.[1] ?? "";
 	const errorMsg = (() => {
 		switch (true) {
-			case text.includes(" as language,"):
+			case file.includes(" as language,"):
 				return `${file} is a localization file`;
-			case !/`[a-zA-Z0-9]{11}-`/.test(text) &&
-				!/`_[a-zA-Z0-9]{12}-`/.test(text):
+			case !/`[a-zA-Z0-9]{11}-`/.test(source) &&
+				!/`_[a-zA-Z0-9]{12}-`/.test(source):
 				return `${file} has no class names`;
 		}
 	})();
@@ -55,7 +56,7 @@ export async function parseFile(file: string) {
 		return classMap;
 	}
 
-	const { errors, program } = parseSync(file, text);
+	const { errors, program } = parseSync(file, source);
 	if (errors.length > 0) {
 		console.error(errors);
 		return classMap;
@@ -69,7 +70,7 @@ export async function parseFile(file: string) {
 			}
 
 			const component = node.arguments[0];
-			const info = uniquelyIdReactComponent(text, component);
+			const info = uniquelyIdReactComponent(source, component);
 			if (!info) {
 				return;
 			}
@@ -83,7 +84,7 @@ export async function parseFile(file: string) {
 				return;
 			}
 
-			const info = uniquelyIdReactComponent(text, node);
+			const info = uniquelyIdReactComponent(source, node);
 			if (!info) {
 				return;
 			}
@@ -173,7 +174,7 @@ export async function parseFile(file: string) {
 
 				// React component
 				if (decl.init.type === "CallExpression") {
-					const info = uniquelyIdReactComponent(text, decl.init);
+					const info = uniquelyIdReactComponent(source, decl.init);
 					if (!info) {
 						continue;
 					}
@@ -280,7 +281,7 @@ export async function parseFile(file: string) {
 						continue;
 					}
 
-					const logInfo = { component: name, isInline: a === lhsInline };
+					const logInfo = { component: name, file, isInline: a === lhsInline };
 					console.error(
 						"Class name length doesn't match!\nInfo: %o\nList:",
 						logInfo,

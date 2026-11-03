@@ -36,10 +36,10 @@ describe("uniquelyIdReactComponent", () => {
 		const info = getResultFromString(source);
 
 		expect(info?.classes).toEqual(new Set([CLASS_NAME]));
-		expect(info?.keys ?? []).toEqual(
+		expect(info?.keys).toEqual(
 			new Set(["alpha", "className", "label", "other", "title", "zeta"]),
 		);
-		expect(info?.strings ?? []).toEqual(new Set(["a", "yep"]));
+		expect(info?.strings).toEqual(new Set(["a", "yep"]));
 	});
 
 	test("returns undefined without a className prop", () => {
