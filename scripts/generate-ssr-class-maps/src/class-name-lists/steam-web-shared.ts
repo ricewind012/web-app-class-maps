@@ -1,18 +1,4 @@
-import type { ReactComponentInfo } from "../react-component-id";
-
-// Length of the CSS module (including the inlined classes count) has to match
-// with all the arrays' lengths here. Some class names are skipped (except when
-// it makes sense, i.e. for context):
-//
-// - Logged out
-// - Responsive
-// - Steam China
-
-interface ComponentListItem {
-	classes: string[];
-	classesInlined?: string[];
-	filter: (info: ReactComponentInfo) => boolean;
-}
+import type { ComponentListItem } from "./types";
 
 export const componentList: Record<string, ComponentListItem> = {
 	communitytemplate: {
@@ -30,7 +16,10 @@ export const componentList: Record<string, ComponentListItem> = {
 			"",
 			"",
 		],
-		filter: (info) => info.strings.has("#footer_link_header_steam"),
+		// For some reason that module only has protobufs and no React
+		// components that could be relied upon...
+		filter: (info) =>
+			info.strings.has("CBilling_GetRecurringSubscriptionsCount_Request"),
 	},
 	globalheader: {
 		classes: [
@@ -144,7 +133,7 @@ export const componentList: Record<string, ComponentListItem> = {
 			"XButton",
 			"SimpleModalContentCtn",
 		],
-		classesInlined: ["SimpleModalDialogTitle", "WideMode"],
+		classesInlined: ["WideMode", "SimpleModalDialogTitle"],
 		filter: (info) => info.strings.has("SimpleModalDialog"),
 	},
 	steamavatar: {
@@ -196,7 +185,7 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) => info.strings.has("SteamLogoThrobber"),
 	},
 	tooltip: {
-		classes: ["TextToolTip"],
+		classes: ["TextToolTip", "ToolTipCustom"],
 		filter: (info) => info.strings.has("tool-tip-source"),
 	},
 	tw_flex: {

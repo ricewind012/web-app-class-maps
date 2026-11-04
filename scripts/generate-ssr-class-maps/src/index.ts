@@ -1,11 +1,17 @@
+import { readFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import { Worker } from "node:worker_threads";
+import { parseFile } from "./parse-file";
 
 type ClassMap = Map<string, Record<string, string>>;
 
-function parseInWorker(source: string) {
+const CLASS_MAPS: Record<string, string> = {
+	"steam-web-shared": "https://store.steampowered.com/cart",
+};
+
+function parseInWorker(source: string, list: string) {
 	const worker = new Worker(new URL("./parse-worker.ts", import.meta.url), {
-		workerData: source,
+		workerData: { list, source },
 	});
 
 	return new Promise<ClassMap>((resolve, reject) => {
@@ -24,7 +30,14 @@ function parseInWorker(source: string) {
 }
 
 async function main() {
-	const [url] = process.argv.slice(2);
+	const [list, file] = process.argv.slice(2);
+	if (file) {
+		const source = await readFile(file, "utf8");
+		const classMap = await parseFile(source, list);
+		console.log(classMap);
+	}
+
+	const url = CLASS_MAPS[list];
 	const resp = await fetch(url);
 	if (!resp.ok) {
 		throw new Error(`Failed to fetch ${url}: ${resp.status}`);
@@ -49,7 +62,7 @@ async function main() {
 				throw new Error(`Failed to fetch ${href}: ${resp.status}`);
 			}
 
-			results[idx] = await parseInWorker(await resp.text());
+			results[idx] = await parseInWorker(await resp.text(), list);
 		}
 	};
 	await Promise.all(Array.from({ length: threads }, () => parseNext()));

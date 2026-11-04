@@ -1,8 +1,8 @@
 import { color } from "bun";
 import { parseSync, Visitor } from "oxc-parser";
 import { getFuncName, isReactComponent, isSSRClassName } from "./ast-utils";
-import { componentList } from "./class-name-lists/steam-web-shared";
 import { componentClassNameFilterMap } from "./class-name-lists/steam-web-shared-object";
+import type { ComponentListItem } from "./class-name-lists/types";
 import {
 	type ReactComponentInfo,
 	uniquelyIdReactComponent,
@@ -23,6 +23,7 @@ const BLACKLISTED_OBJ_EXPR_KEYS = new Set([
 
 const c = {
 	gray: color("gray", "ansi"),
+	reset: "\x1b[m",
 	white: color("white", "ansi"),
 };
 
@@ -31,12 +32,15 @@ function printClasses(lhs: string[], rhs: string[]) {
 	const len = Math.max(lhs.length, rhs.length);
 	for (let i = 0; i < len; i++) {
 		const a = (lhs[i] ?? "").padStart(13);
-		const b = rhs[i] === "" ? [c.gray, "-- skipped --"].join("") : rhs[i];
-		console.log("%s %s|%s %s", a, c.gray, c.white, b);
+		const b =
+			rhs[i] === ""
+				? `${c.gray}-- skipped --${c.reset}`
+				: `${c.white}${rhs[i]}${c.reset}`;
+		console.log("%s %s|%s %s", a, c.gray, c.reset, b);
 	}
 }
 
-export async function parseFile(source: string) {
+export async function parseFile(source: string, list: string) {
 	const classMap = new Map<string, Record<string, string>>();
 	const file =
 		source
@@ -222,12 +226,9 @@ export async function parseFile(source: string) {
 			state.components[state.index] = components;
 		},
 		VariableDeclarator(node) {
-			if (node.id.type !== "Identifier") {
-				return;
-			}
-
 			// SSR strings are always templates without variables
 			if (
+				node.id.type !== "Identifier" ||
 				node.init?.type !== "TemplateLiteral" ||
 				node.init.quasis.length > 1
 			) {
@@ -249,6 +250,9 @@ export async function parseFile(source: string) {
 	});
 	visitor.visit(program);
 
+	const { componentList } = (await import(`./class-name-lists/${list}`)) as {
+		componentList: Record<string, ComponentListItem>;
+	};
 	// Start from 1, since variables are declared first
 	for (let i = 1; i <= state.index; i++) {
 		const components = state.components[i];
@@ -281,11 +285,12 @@ export async function parseFile(source: string) {
 						continue;
 					}
 
-					const logInfo = { component: name, file, isInline: a === lhsInline };
-					console.error(
-						"Class name length doesn't match!\nInfo: %o\nList:",
-						logInfo,
-					);
+					console.error(info);
+					console.error("Class name length doesn't match!\nInfo: %o\nList:", {
+						component: name,
+						file,
+						isInline: a === lhsInline,
+					});
 					printClasses(a, b);
 					process.exit(1);
 				}

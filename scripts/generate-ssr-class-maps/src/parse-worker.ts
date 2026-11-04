@@ -5,9 +5,11 @@ if (!parentPort) {
 	throw new Error("This module must run in a worker thread");
 }
 
-if (typeof workerData !== "string") {
-	throw new Error("Worker expected a file path");
+if (typeof workerData !== "object") {
+	throw new Error(
+		`Worker expected an object, got ${JSON.stringify(workerData)}`,
+	);
 }
-
-const classMap = await parseFile(workerData);
+const { list, source } = workerData as { list: string; source: string };
+const classMap = await parseFile(source, list);
 parentPort.postMessage(classMap);
