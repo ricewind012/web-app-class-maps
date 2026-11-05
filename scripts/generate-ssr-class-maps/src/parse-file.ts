@@ -35,7 +35,7 @@ function printClasses(lhs: string[], rhs: string[]) {
 		const b =
 			rhs[i] === ""
 				? `${c.gray}-- skipped --${c.reset}`
-				: `${c.white}${rhs[i]}${c.reset}`;
+				: `${c.white}${rhs[i] ?? ""}${c.reset}`;
 		console.log("%s %s|%s %s", a, c.gray, c.reset, b);
 	}
 }
@@ -85,7 +85,7 @@ export async function parseFile(source: string, list: string) {
 		FunctionDeclaration(node) {
 			changeFunctionDepth(true);
 			if (!isReactComponent(node)) {
-				return;
+				//return;
 			}
 
 			const info = uniquelyIdReactComponent(source, node);
@@ -104,6 +104,10 @@ export async function parseFile(source: string, list: string) {
 		// If the CSS module is referenced like[`this`] in the code, it will include
 		// both inlined classes, and the module itself right after
 		ObjectExpression(node) {
+			if (list !== "steam-web-shared") {
+				return;
+			}
+
 			// Only inspect top-level objects
 			if (isInFunction()) {
 				return;
@@ -253,6 +257,7 @@ export async function parseFile(source: string, list: string) {
 	const { componentList } = (await import(`./class-name-lists/${list}`)) as {
 		componentList: Record<string, ComponentListItem>;
 	};
+	console.log(state.components.map((e) => e.map((e) => e?.strings)));
 	// Start from 1, since variables are declared first
 	for (let i = 1; i <= state.index; i++) {
 		const components = state.components[i];
@@ -285,7 +290,6 @@ export async function parseFile(source: string, list: string) {
 						continue;
 					}
 
-					console.error(info);
 					console.error("Class name length doesn't match!\nInfo: %o\nList:", {
 						component: name,
 						file,

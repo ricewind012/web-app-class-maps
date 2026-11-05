@@ -41,7 +41,6 @@ const STEAM_WEB_SELECTORS: Record<Exclude<Page, "steamclient">, string> = {
 	steamapppage: "[data-featuretarget='appreviews']",
 	steamnotificationspage: "#react_root",
 	steamprofileedit: "#react_root",
-	steamshoppingcart: "[data-featuretarget='react-root']",
 	steamstoremenu: "[data-featuretarget='store-menu-v7']",
 };
 const TIMEOUT = 10_000;

@@ -32,7 +32,6 @@ export type Page =
 	| "steamclient"
 	| "steamnotificationspage"
 	| "steamprofileedit"
-	| "steamshoppingcart"
 	| "steamstoremenu";
 
 /**
