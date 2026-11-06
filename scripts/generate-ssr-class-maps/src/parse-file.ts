@@ -35,7 +35,7 @@ function printClasses(lhs: string[], rhs: string[]) {
 		const b =
 			rhs[i] === ""
 				? `${c.gray}-- skipped --${c.reset}`
-				: `${c.white}${rhs[i]}${c.reset}`;
+				: `${c.white}${rhs[i] ?? ""}${c.reset}`;
 		console.log("%s %s|%s %s", a, c.gray, c.reset, b);
 	}
 }
@@ -85,7 +85,7 @@ export async function parseFile(source: string, list: string) {
 		FunctionDeclaration(node) {
 			changeFunctionDepth(true);
 			if (!isReactComponent(node)) {
-				return;
+				//return;
 			}
 
 			const info = uniquelyIdReactComponent(source, node);
@@ -95,8 +95,10 @@ export async function parseFile(source: string, list: string) {
 
 			state.components[state.index] ||= [];
 			state.components[state.index].push(info);
-			state.classesInlined[state.index] ||= [];
-			state.classesInlined[state.index].push(...info.classes);
+			state.classesInlined[state.index] ||= new Set();
+			for (const className of info.classes) {
+				state.classesInlined[state.index].add(className);
+			}
 		},
 		"FunctionDeclaration:exit"() {
 			changeFunctionDepth(false);
@@ -104,6 +106,10 @@ export async function parseFile(source: string, list: string) {
 		// If the CSS module is referenced like[`this`] in the code, it will include
 		// both inlined classes, and the module itself right after
 		ObjectExpression(node) {
+			if (list !== "steam-web-shared") {
+				return;
+			}
+
 			// Only inspect top-level objects
 			if (isInFunction()) {
 				return;
@@ -163,8 +169,8 @@ export async function parseFile(source: string, list: string) {
 		// VariableDeclarator isn't used because it would ++ the index on each
 		// variable declaration instead of once
 		VariableDeclaration(node) {
-			const classes: string[] = [];
-			const classesInlined: string[] = [];
+			const classes = new Set<string>();
+			const classesInlined = new Set<string>();
 			const components: ReactComponentInfo[] = [];
 			for (const decl of node.declarations) {
 				// Class name variables are always initialized
@@ -183,7 +189,9 @@ export async function parseFile(source: string, list: string) {
 						continue;
 					}
 
-					classesInlined.push(...info.classes);
+					for (const className of info.classes) {
+						classesInlined.add(className);
+					}
 					components.push(info);
 					continue;
 				}
@@ -206,11 +214,11 @@ export async function parseFile(source: string, list: string) {
 					continue;
 				}
 
-				classes.push(value);
+				classes.add(value);
 			}
 
-			if (classes.length === 0) {
-				if (classesInlined.length !== 0) {
+			if (classes.size === 0) {
+				if (classesInlined.size !== 0) {
 					state.classesInlined[state.index] = classesInlined;
 					state.components[state.index] = components;
 				}
@@ -262,9 +270,9 @@ export async function parseFile(source: string, list: string) {
 					continue;
 				}
 
-				const lhs = state.classes[i];
+				const lhs = [...state.classes[i]];
 				const rhs = listItem.classes;
-				const lhsInline = state.classesInlined[i];
+				const lhsInline = [...state.classesInlined[i]];
 				const rhsInline = listItem.classesInlined ?? lhsInline; // skip if it doesn't exist
 				const kv: Record<string, string> = {};
 				for (const [a, b] of [
@@ -285,7 +293,6 @@ export async function parseFile(source: string, list: string) {
 						continue;
 					}
 
-					console.error(info);
 					console.error("Class name length doesn't match!\nInfo: %o\nList:", {
 						component: name,
 						file,
@@ -300,5 +307,6 @@ export async function parseFile(source: string, list: string) {
 			}
 		}
 	}
+
 	return classMap;
 }

@@ -13,8 +13,12 @@ export function isInFunction() {
 
 // referenced by index
 interface State {
-	readonly classes: string[][];
-	readonly classesInlined: string[][];
+	/**
+	 * Inlined classes may sometimes be duplicated but this is a Set for
+	 * consistency.
+	 */
+	readonly classes: Set<string>[];
+	readonly classesInlined: Set<string>[];
 	readonly components: ReactComponentInfo[][];
 	/**
 	 * Tracks whether the visitor is currently inside a function while finding

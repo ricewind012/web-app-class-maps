@@ -1,5 +1,6 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
+import { join } from "node:path";
 import { Worker } from "node:worker_threads";
 import { parseFile } from "./parse-file";
 
@@ -7,6 +8,7 @@ type ClassMap = Map<string, Record<string, string>>;
 
 const CLASS_MAPS: Record<string, string> = {
 	"steam-web-shared": "https://store.steampowered.com/cart",
+	"steam-web-shoppingcart": "https://store.steampowered.com/cart",
 };
 
 function parseInWorker(source: string, list: string) {
@@ -31,10 +33,17 @@ function parseInWorker(source: string, list: string) {
 
 async function main() {
 	const [list, file] = process.argv.slice(2);
+	const filePath = join(
+		"..",
+		"class-maps",
+		`${list.replace("steam-web-", "")}.json`,
+	);
 	if (file) {
 		const source = await readFile(file, "utf8");
 		const classMap = await parseFile(source, list);
 		console.log(classMap);
+		writeFile(filePath, JSON.stringify(classMap));
+		return;
 	}
 
 	const url = CLASS_MAPS[list];
@@ -49,6 +58,7 @@ async function main() {
 		...html.matchAll(/<script type="module" src="(https.*?\.js)" nonce/g),
 	].map((e) => e[1]);
 	const hrefs = [...new Set(matches)];
+	writeFile("a", hrefs.join("\n"));
 
 	const threads = Math.min(availableParallelism(), hrefs.length);
 	const results = new Array<ClassMap>(hrefs.length);
@@ -75,6 +85,7 @@ async function main() {
 	}
 
 	console.log(classMap);
+	writeFile(filePath, JSON.stringify(classMap));
 }
 
 main().catch((error) => {

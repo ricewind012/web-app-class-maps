@@ -203,7 +203,7 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) =>
 			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
 			info.strings.has("flow-children") &&
-			!info.strings.has("grid"),
+			info.strings.has("wrap"),
 	},
 	tw_grid: {
 		classes: [
@@ -225,7 +225,7 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) =>
 			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
 			info.strings.has("flow-children") &&
-			info.strings.has("grid"),
+			!info.strings.has("wrap"),
 	},
 	tw_popoverlist: {
 		classes: ["Root", "Item"],

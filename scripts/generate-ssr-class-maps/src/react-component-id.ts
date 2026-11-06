@@ -82,7 +82,7 @@ export function uniquelyIdReactComponent(text: string, span: Span) {
 	const { start, end } = span;
 	const outer = text.slice(start, end);
 	if (!outer.toLowerCase().includes("classname:")) {
-		return;
+		//return;
 	}
 
 	// Wrap in parentheses for anonymous functions used with forwardRef/memo

@@ -27,7 +27,6 @@ const PAGES: Page[] = [
 	"steamclient",
 	"steamnotificationspage",
 	"steamprofileedit",
-	"steamshoppingcart",
 	"steamstoremenu",
 ];
 const STEAM_PAGES = new Set(
