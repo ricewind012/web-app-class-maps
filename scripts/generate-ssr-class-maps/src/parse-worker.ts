@@ -6,10 +6,9 @@ if (!parentPort) {
 }
 
 if (typeof workerData !== "object") {
-	throw new Error(
-		`Worker expected an object, got ${JSON.stringify(workerData)}`,
-	);
+	throw new Error(`Worker expected an object, got ${workerData}`);
 }
+
 const { list, source } = workerData as { list: string; source: string };
 const classMap = await parseFile(source, list);
 parentPort.postMessage(classMap);

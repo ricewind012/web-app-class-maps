@@ -95,8 +95,10 @@ export async function parseFile(source: string, list: string) {
 
 			state.components[state.index] ||= [];
 			state.components[state.index].push(info);
-			state.classesInlined[state.index] ||= [];
-			state.classesInlined[state.index].push(...info.classes);
+			state.classesInlined[state.index] ||= new Set();
+			for (const className of info.classes) {
+				state.classesInlined[state.index].add(className);
+			}
 		},
 		"FunctionDeclaration:exit"() {
 			changeFunctionDepth(false);
@@ -167,8 +169,8 @@ export async function parseFile(source: string, list: string) {
 		// VariableDeclarator isn't used because it would ++ the index on each
 		// variable declaration instead of once
 		VariableDeclaration(node) {
-			const classes: string[] = [];
-			const classesInlined: string[] = [];
+			const classes = new Set<string>();
+			const classesInlined = new Set<string>();
 			const components: ReactComponentInfo[] = [];
 			for (const decl of node.declarations) {
 				// Class name variables are always initialized
@@ -187,7 +189,9 @@ export async function parseFile(source: string, list: string) {
 						continue;
 					}
 
-					classesInlined.push(...info.classes);
+					for (const className of info.classes) {
+						classesInlined.add(className);
+					}
 					components.push(info);
 					continue;
 				}
@@ -210,11 +214,11 @@ export async function parseFile(source: string, list: string) {
 					continue;
 				}
 
-				classes.push(value);
+				classes.add(value);
 			}
 
-			if (classes.length === 0) {
-				if (classesInlined.length !== 0) {
+			if (classes.size === 0) {
+				if (classesInlined.size !== 0) {
 					state.classesInlined[state.index] = classesInlined;
 					state.components[state.index] = components;
 				}
@@ -257,7 +261,6 @@ export async function parseFile(source: string, list: string) {
 	const { componentList } = (await import(`./class-name-lists/${list}`)) as {
 		componentList: Record<string, ComponentListItem>;
 	};
-	console.log(state.components.map((e) => e.map((e) => e?.strings)));
 	// Start from 1, since variables are declared first
 	for (let i = 1; i <= state.index; i++) {
 		const components = state.components[i];
@@ -267,9 +270,9 @@ export async function parseFile(source: string, list: string) {
 					continue;
 				}
 
-				const lhs = state.classes[i];
+				const lhs = [...state.classes[i]];
 				const rhs = listItem.classes;
-				const lhsInline = state.classesInlined[i];
+				const lhsInline = [...state.classesInlined[i]];
 				const rhsInline = listItem.classesInlined ?? lhsInline; // skip if it doesn't exist
 				const kv: Record<string, string> = {};
 				for (const [a, b] of [
@@ -304,5 +307,6 @@ export async function parseFile(source: string, list: string) {
 			}
 		}
 	}
+
 	return classMap;
 }

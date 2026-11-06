@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { Worker } from "node:worker_threads";
-import puppeteer, { type Page } from "puppeteer";
+import puppeteer from "puppeteer-core";
 import { parseFile } from "./parse-file";
 
 type ClassMap = Map<string, Record<string, string>>;
@@ -28,17 +28,6 @@ function parseInWorker(source: string, list: string) {
 			}
 		});
 	});
-}
-
-async function fetchWithBrowser(page: Page, href: string) {
-	return page.evaluate(async (url) => {
-		const response = await fetch(url, { credentials: "include" });
-		if (!response.ok) {
-			throw new Error(`Failed to fetch ${url}: ${response.status}`);
-		}
-
-		return response.text();
-	}, href);
 }
 
 async function main() {
@@ -65,25 +54,26 @@ async function main() {
 		throw new Error(`Unknown class list: ${list}`);
 	}
 
-	const profileDir = join(
+	const userDataDir = join(
 		homedir(),
 		".generate-ssr-class-maps",
 		"steam-browser-profile",
 	);
-	await mkdir(profileDir, { recursive: true });
+	await mkdir(userDataDir, { recursive: true });
 
+	// TODO: this has to run in ci one day
 	const browser = await puppeteer.launch({
 		browser: "firefox",
 		executablePath: "/opt/firefox-nightly/firefox",
-		headless: false,
-		userDataDir: profileDir,
+		//headless: false,
+		userDataDir,
 	});
 
 	try {
 		const page = await browser.newPage();
 		await page.goto(url, { waitUntil: "networkidle2" });
 		console.log(
-			`Steam cart opened in Chrome using profile ${profileDir}. Log in if needed, then press Enter here to continue.`,
+			`Steam cart opened in Chrome using profile ${userDataDir}. Log in if needed, then press Enter here to continue.`,
 		);
 		const readline = createInterface({ input: stdin, output: stdout });
 		try {
@@ -107,8 +97,13 @@ async function main() {
 			while (nextIdx < hrefs.length) {
 				const idx = nextIdx++;
 				const href = hrefs[idx];
-				const source = await fetchWithBrowser(page, href);
-				results[idx] = await parseInWorker(source, list);
+				// Fetching from the browser returns a NetworkError lol?
+				const resp = await fetch(href);
+				if (!resp.ok) {
+					throw new Error(`Failed to fetch ${href}: ${resp.status}`);
+				}
+
+				results[idx] = await parseInWorker(await resp.text(), list);
 			}
 		};
 		await Promise.all(Array.from({ length: threads }, () => parseNext()));
