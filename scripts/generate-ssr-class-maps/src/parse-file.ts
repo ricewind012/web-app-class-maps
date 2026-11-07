@@ -220,7 +220,7 @@ export async function parseFile(source: string, list: string) {
 			if (classes.size === 0) {
 				if (classesInlined.size !== 0) {
 					state.classesInlined[state.index] = classesInlined;
-					state.components[state.index] = components;
+					state.components[state.index] ||= components;
 				}
 				return;
 			}
@@ -296,6 +296,7 @@ export async function parseFile(source: string, list: string) {
 					console.error("Class name length doesn't match!\nInfo: %o\nList:", {
 						component: name,
 						file,
+						info,
 						isInline: a === lhsInline,
 					});
 					printClasses(a, b);

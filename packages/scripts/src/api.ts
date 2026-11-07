@@ -31,8 +31,7 @@ export type Page =
 	| "steamapppage"
 	| "steamclient"
 	| "steamnotificationspage"
-	| "steamprofileedit"
-	| "steamstoremenu";
+	| "steamprofileedit";
 
 /**
  * Existing scripts.

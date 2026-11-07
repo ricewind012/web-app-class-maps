@@ -27,7 +27,6 @@ const PAGES: Page[] = [
 	"steamclient",
 	"steamnotificationspage",
 	"steamprofileedit",
-	"steamstoremenu",
 ];
 const STEAM_PAGES = new Set(
 	PAGES.filter((e) => e.startsWith("steam")).map((e) => e.replace("steam", "")),

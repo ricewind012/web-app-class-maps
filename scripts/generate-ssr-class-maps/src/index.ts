@@ -8,6 +8,7 @@ type ClassMap = Map<string, Record<string, string>>;
 
 const CLASS_MAPS: Record<string, string> = {
 	"steam-web-shared": "https://store.steampowered.com/cart",
+	"steam-web-shared_store": "https://store.steampowered.com/cart",
 	"steam-web-shoppingcart": "https://store.steampowered.com/cart",
 };
 

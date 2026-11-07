@@ -148,7 +148,5 @@ export async function getSteamPageUrl(page: Page): Promise<SteamPage> {
 			return pageObj(`${profileUrl}notifications`);
 		case "steamprofileedit":
 			return pageObj(await resolve("SteamIDEditPage"));
-		case "steamstoremenu":
-			return pageObj(await resolve("StoreFrontPage"));
 	}
 }
