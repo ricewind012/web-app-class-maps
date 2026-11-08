@@ -222,4 +222,16 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("#Menu_Section_Categories_ViewAll"),
 	},
+	storetemplate: {
+		classes: ["ProgressBar", "Root", "Body", "ReactRoot", "Content"],
+		classesInlined: [
+			"WideMode",
+			"WithGlobalHeader",
+			"WithVirtualizedScrolling",
+			// internal options
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("StoreTemplate"),
+	},
 };

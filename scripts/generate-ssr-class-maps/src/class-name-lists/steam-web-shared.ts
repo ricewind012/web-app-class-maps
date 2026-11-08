@@ -1,10 +1,8 @@
 import type { ComponentListItem } from "./types";
 
+// TODO: simplemodaldialog & throbber don't get fetched in the market page
+
 export const componentList: Record<string, ComponentListItem> = {
-	communitytemplate: {
-		classes: ["ProgressBar", "Body", "ReactRoot", "Content"],
-		filter: (info) => info.strings.has("CommunityTemplate"),
-	},
 	globalfooter: {
 		classes: [
 			"GlobalFooter",
@@ -16,10 +14,7 @@ export const componentList: Record<string, ComponentListItem> = {
 			"",
 			"",
 		],
-		// For some reason that module only has protobufs and no React
-		// components that could be relied upon...
-		filter: (info) =>
-			info.strings.has("CBilling_GetRecurringSubscriptionsCount_Request"),
+		filter: (info) => info.strings.has("#footer_legal_notice"),
 	},
 	globalheader: {
 		classes: [
@@ -122,10 +117,16 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has(".hover_arrow.left"),
 	},
+	modaldialog: {
+		classes: ["ModalDialog", "ModalDialogContent"],
+		classesInlined: ["NoBodyScroll"],
+		filter: (info) => info.strings.has("ModalDialog"),
+	},
 	root: {
 		classes: ["Root"],
-		filter: (info) => info.strings.has("noOpinionatedGlobalStyles"),
+		filter: (info) => info.strings.has("--default-font-size"),
 	},
+	/*
 	simplemodaldialog: {
 		classes: [
 			"SimpleModalDialog",
@@ -136,6 +137,7 @@ export const componentList: Record<string, ComponentListItem> = {
 		classesInlined: ["WideMode", "SimpleModalDialogTitle"],
 		filter: (info) => info.strings.has("SimpleModalDialog"),
 	},
+	*/
 	steamavatar: {
 		classes: [
 			"AvatarHolder",
@@ -151,6 +153,7 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("data-status-position"),
 	},
+	/*
 	throbber: {
 		classes: [
 			"LoadingWrapper",
@@ -184,8 +187,10 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("SteamLogoThrobber"),
 	},
+	*/
 	tooltip: {
-		classes: ["TextToolTip", "ToolTipCustom"],
+		classes: ["TextToolTip"],
+		// Dude
 		filter: (info) => info.strings.has("tool-tip-source"),
 	},
 	tw_flex: {

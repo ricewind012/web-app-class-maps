@@ -2,15 +2,27 @@ import { readFile, writeFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import { join } from "node:path";
 import { Worker } from "node:worker_threads";
+import { componentClassNameFilterMap } from "./class-name-lists/steam-web-shared-object";
+import type { ComponentListItem } from "./class-name-lists/types";
 import { parseFile } from "./parse-file";
 
 type ClassMap = Map<string, Record<string, string>>;
 
 const CLASS_MAPS: Record<string, string> = {
-	"steam-web-shared": "https://store.steampowered.com/cart",
+	"steam-web-shared":
+		"https://steamcommunity.com/market/listings/730/G180720F7083004",
 	"steam-web-shared_store": "https://store.steampowered.com/cart",
 	"steam-web-shoppingcart": "https://store.steampowered.com/cart",
 };
+
+async function getTextFromURL(url: string) {
+	const resp = await fetch(url);
+	if (!resp.ok) {
+		throw new Error(`Failed to fetch ${url}: ${resp.status}`);
+	}
+
+	return resp.text();
+}
 
 function parseInWorker(source: string, list: string) {
 	const worker = new Worker(new URL("./parse-worker.ts", import.meta.url), {
@@ -32,28 +44,40 @@ function parseInWorker(source: string, list: string) {
 	});
 }
 
+async function writeClassMap(list: string, classMap: ClassMap) {
+	const { componentList } = (await import(`./class-name-lists/${list}`)) as {
+		componentList: Record<string, ComponentListItem>;
+	};
+	const additional = Object.keys(componentClassNameFilterMap);
+	const listKeys = Object.keys(componentList);
+	if (list === "steam-web-shared") {
+		listKeys.push(...additional);
+	}
+
+	const a = new Set(listKeys);
+	const b = new Set(classMap.keys());
+	const notFound = a.difference(b);
+	if (notFound.size > 0) {
+		console.error("These components were not found: %o", notFound);
+		process.exit(1);
+	}
+
+	console.log(classMap);
+	const filePath = join("class-maps", `${list.replace("steam-web-", "")}.json`);
+	writeFile(filePath, JSON.stringify(Object.fromEntries(classMap), null, 4));
+}
+
 async function main() {
 	const [list, file] = process.argv.slice(2);
-	const filePath = join(
-		"..",
-		"class-maps",
-		`${list.replace("steam-web-", "")}.json`,
-	);
 	if (file) {
 		const source = await readFile(file, "utf8");
 		const classMap = await parseFile(source, list);
-		console.log(classMap);
-		writeFile(filePath, JSON.stringify(classMap));
+		await writeClassMap(list, classMap);
 		return;
 	}
 
 	const url = CLASS_MAPS[list];
-	const resp = await fetch(url);
-	if (!resp.ok) {
-		throw new Error(`Failed to fetch ${url}: ${resp.status}`);
-	}
-
-	const html = await resp.text();
+	const html = await getTextFromURL(url);
 	const matches = [
 		...html.matchAll(/<link rel="modulepreload" href="(https.*?\.js)" as/g),
 		...html.matchAll(/<script type="module" src="(https.*?\.js)" nonce/g),
@@ -68,25 +92,22 @@ async function main() {
 		while (nextIdx < hrefs.length) {
 			const idx = nextIdx++;
 			const href = hrefs[idx];
-			const resp = await fetch(href);
-			if (!resp.ok) {
-				throw new Error(`Failed to fetch ${href}: ${resp.status}`);
-			}
-
-			results[idx] = await parseInWorker(await resp.text(), list);
+			const text = await getTextFromURL(href);
+			results[idx] = await parseInWorker(text, list);
 		}
 	};
 	await Promise.all(Array.from({ length: threads }, () => parseNext()));
 
-	const classMap: Record<string, Record<string, string>> = {};
+	const classMap = new Map<string, Record<string, string>>();
 	for (const result of results) {
 		for (const [component, classes] of result) {
-			classMap[component] = classes;
+			classMap.set(component, {
+				...classMap.get(component),
+				...classes,
+			});
 		}
 	}
-
-	console.log(classMap);
-	writeFile(filePath, JSON.stringify(classMap));
+	await writeClassMap(list, classMap);
 }
 
 main().catch((error) => {

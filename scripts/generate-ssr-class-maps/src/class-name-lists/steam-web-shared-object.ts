@@ -3,13 +3,13 @@
  */
 export const componentClassNameFilterMap: Record<string, string> = {
 	contextmenu: "contextMenu",
-	pagedsettings: "PagedSettingsDialog",
-	sharedsvggamerecordings: "RecordingIconContainer",
+	// why is this included lol?
+	// pagedsettings: "PagedSettingsDialog",
 	tw_block: "ZIndex",
 	tw_button: "Button",
 	tw_checkbox: "Checkbox",
 	tw_controlbox: "ControlBox",
-	tw_heading: "Heading", // HeadingSize-1
+	tw_heading: "Heading",
 	tw_icon: "IconSizeDefault",
 	tw_link: "TextLinkButton",
 	tw_segmentedcontrol: "SegmentedControl",
@@ -17,5 +17,4 @@ export const componentClassNameFilterMap: Record<string, string> = {
 	tw_spinner: "Spinner",
 	tw_text: "WhiteSpace",
 	tw_toggle: "Track",
-	workshopitemcontainer: "aspectratio_square",
 };

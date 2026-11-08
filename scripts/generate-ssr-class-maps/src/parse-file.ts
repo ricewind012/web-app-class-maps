@@ -46,6 +46,11 @@ export async function parseFile(source: string, list: string) {
 		source
 			.slice(source.lastIndexOf("\n") + 1, source.length)
 			.match(/^\/\/# sourceMappingURL=(.*)\.map$/)?.[1] ?? "";
+	// Single imports...?
+	if (file === "") {
+		return classMap;
+	}
+
 	const errorMsg = (() => {
 		switch (true) {
 			case file.includes(" as language,"):
