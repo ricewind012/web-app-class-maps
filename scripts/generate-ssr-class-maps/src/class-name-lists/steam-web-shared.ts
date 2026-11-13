@@ -239,4 +239,12 @@ export const componentList: Record<string, ComponentListItem> = {
 				"<PopoverListItem> must be a child of <PopoverListRoot>.",
 			),
 	},
+	tw_radio: {
+		classes: ["RadioItem", "Radio"],
+		classesInlined: ["RadioGroupDisabled"],
+		filter: (info) =>
+			info.strings.has(
+				"<RadioGroup.Option> must be rendered within a <RadioGroup.Root>",
+			),
+	},
 };

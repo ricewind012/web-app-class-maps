@@ -1,0 +1,38 @@
+import type { ComponentListItem } from "./types";
+
+export const componentList: Record<string, ComponentListItem> = {
+	workshophome: {
+		classes: [
+			"Tabs",
+			"Tab",
+			"Section",
+			"Header",
+			"Title",
+			"ItemGridFive",
+			"PastWeekItemCarousel",
+			"ItemGridSix",
+			"ItemGridFill",
+			"SectionItems",
+			"SidebarAndSearch",
+			"SidebarSectionHeader",
+			"SidebarSectionItem",
+			"SidebarSectionItem2",
+			"SidebarSectionItemTitle",
+			"SidebarSectionItemSecondary",
+			"SidebarSectionItems",
+			"SidebarSectionItems2",
+			"unk_3",
+			"Content",
+			"unk_4",
+			"SectionVotingQueue",
+			"VotingQueueItem",
+			"VotingQueueItemImg",
+			"ButtonCtn",
+			"unk_9",
+			"unk_10",
+			"SectionEvents",
+		],
+		classesInlined: ["CarouselButtonCtn", "Left", "Right", "Active", "Sidebar"],
+		filter: (info) => info.strings.has("#Workshop_Home_ViewAll"),
+	},
+};

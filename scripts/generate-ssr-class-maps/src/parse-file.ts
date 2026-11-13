@@ -224,7 +224,7 @@ export async function parseFile(source: string, list: string) {
 
 			if (classes.size === 0) {
 				if (classesInlined.size !== 0) {
-					state.classesInlined[state.index] = classesInlined;
+					state.classesInlined[state.index] ||= classesInlined;
 					state.components[state.index] ||= components;
 				}
 				return;

@@ -13,6 +13,9 @@ const CLASS_MAPS: Record<string, string> = {
 		"https://steamcommunity.com/market/listings/730/G180720F7083004",
 	"steam-web-shared_store": "https://store.steampowered.com/cart",
 	"steam-web-shoppingcart": "https://store.steampowered.com/cart",
+	"steam-web-workshop":
+		"https://steamcommunity.com/workshop/browse/?appid=312520",
+	"steam-web-workshophome": "https://steamcommunity.com/app/312520/workshop/",
 };
 
 async function getTextFromURL(url: string) {
