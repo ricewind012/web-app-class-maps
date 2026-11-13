@@ -1,31 +1,16 @@
-declare var parsedModules: [string, ClassModule][];
-
-var gamepadDialogModules = findAllModules((e) => e.WithBottomSeparator);
-// TODO: maybe use if it's still like this, idk
-var timelineScrollModules = findAllModules((e) => e.TimelineScrollContainer);
+var achievementIconBaseModules = findAllModules(
+	(e) => e.RareAchievementNoAnimation,
+);
 
 /**
  * Special children that can not be easily identified.
  */
 // biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var specialModules: ClassModuleMap = {
-	cliptimelinescroll: timelineScrollModules.find(
-		(e) =>
-			!e.thumbnailWidth &&
-			!e.ContentAndGradient &&
-			!e.gradient &&
-			!e.IsLive &&
-			!e.Faded &&
-			!e.TimelineRelativeDate &&
-			!e.GameModeMarker &&
-			!e.Minor,
-	),
+	achievementiconbase: achievementIconBaseModules[1],
 	cloudfileuploadbutton: findAllModules((e) => e.Ctn)[1],
-	controllerconfiguratormapping: gamepadDialogModules[2],
-	gamepaddialog: gamepadDialogModules[0],
 	image: findAllModules((e) => e.ErrorDiv)[0],
 	loyaltyrewarditemembed: findAllModules((e) => e.Ctn)[0],
-	quickaccesscontrols: findAllModules((e) => e.QuickAccessNotifications)[1],
 	saleeventbbcodeparser: findAllModules((e) => e.ErrorDiv)[0],
 	vrgamepadui: findModule((e) => e.PopupBody && Object.keys(e).length === 7),
 };
@@ -39,12 +24,13 @@ var specialModules: ClassModuleMap = {
 		...(
 			await Promise.all(
 				[
-					"9441",
 					"awardicon",
 					"broadcast",
 					"chunk~1a96cdf59",
 					"gamenotes",
 					"gamerecording",
+					"shareeventdialog",
+					"virtualkeyboard",
 				].map(async (e) =>
 					(await fetch(`https://steamloopback.host/${e}.js`)).text(),
 				),
@@ -100,6 +86,9 @@ var specialModules: ClassModuleMap = {
 				case exists("ClipSavedHint"):
 					return "gamerecordingclip";
 
+				// virtualkeyboard
+				case exists("Keyboard"):
+					return "virtualkeyboard";
 				default:
 					return "exists to satisfy typescript";
 			}
@@ -114,7 +103,6 @@ var exportedModules: ExportedModuleMap = [
 	["aboutsteamdialog", (e) => e.AboutSteamDialog],
 	["accountpanel", (e) => e.ChangePersonaNameContent],
 	["accountsettings", (e) => e.Avatar && e.EntryLabel],
-	["achievementiconbase", (e) => e.RareAchievementNoAnimation],
 	["achievementsheader", (e) => e.LeaderboardsButton],
 	["achievementslist", (e) => e.UserUnlockDateTime && !e.Page],
 	["achievementspage", (e) => e.UserUnlockDateTime && e.Page],
@@ -237,6 +225,7 @@ var exportedModules: ExportedModuleMap = [
 	["cliptimelinemarkercontainer", (e) => e.TimelineMarkerCtn],
 	["cliptimelinerangeselector", (e) => e.TrackRangeControls && !e.ActiveCtn],
 	["cliptimelinerecordingdecorator", (e) => e.LiveRecordingBuffer],
+	["cliptimelinescroll", (e) => e.TimelineScrollContainer],
 	["cloudconflict", (e) => e.ConflictChoiceText],
 	["cloudfileuploadprogress", (e) => e.UploadPreviewContainer],
 	["collectionbanner", (e) => e.CollectionShelfBanner],
@@ -246,7 +235,7 @@ var exportedModules: ExportedModuleMap = [
 	["commentthread", (e) => e.ActivityCommentThread],
 	["console", (e) => e.Console],
 	["contentmanagement", (e) => e.ContentManagement],
-	["contentreportdialog", (e) => e.ContentReportDialog],
+	["contentreportdialog", (e) => e.ContentReportDialog && e.AccountSafetyCtn],
 	["contextmenu", (e) => e.ContextMenuMouseOverlay],
 	["controllerconfigurator", (e) => e.ControllerConfiguratorGamepadPage],
 	[
@@ -341,6 +330,7 @@ var exportedModules: ExportedModuleMap = [
 	["gamenotesprosemirrorhover", (e) => e.LinkHelp],
 	["gamepadcolorpicker", (e) => e.ColorPickerPreview],
 	["gamepadcontextmenu", (e) => e.BasicContextMenuHeader && !e.PageList],
+	["gamepaddialog", (e) => e.WithBottomSeparator],
 	["gamepaddropdown", (e) => e.DropDownControlButton],
 	["gamepadgamerecording", (e) => e.GameRecordingGamepadUI],
 	["gamepadhome", (e) => e.TabbedContent],
@@ -480,7 +470,8 @@ var exportedModules: ExportedModuleMap = [
 		"quickaccesscontrollerorder",
 		(e) => e.OptedOut && Object.keys(e).length === 2,
 	],
-	["quickaccessmenu", (e) => e.BatteryProjectedValue && e.Up],
+	["quickaccesscontrols", (e) => e.PanelSectionTitle],
+	["quickaccessmenu", (e) => e.QuickAccessMenuEmbeddedContainer],
 	[
 		"quickaccessvoicecontrolssteamdeck",
 		(e) => e.FriendVoiceChatSliderContainer,
@@ -569,7 +560,6 @@ var exportedModules: ExportedModuleMap = [
 	["unstyledbutton", (e) => e.UnstyledButton],
 	["updatealert", (e) => e.BytesDownloaded],
 	["updaterfield", (e) => e.UpdateBytesRemaining],
-	["virtualkeyboard", (e) => e.VirtualKeyboardContainer && e.Modal],
 	// May conflict with other broadcast modules in the future
 	["vodplayer", (e) => e.BroadcastCtn],
 	["voicechatheadersteamdeck", (e) => e.ActiveCall],

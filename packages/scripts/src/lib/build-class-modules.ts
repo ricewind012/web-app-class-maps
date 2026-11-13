@@ -98,7 +98,7 @@ async function doTheThing(page: Page, conn: typeof connection) {
 	};
 
 	const preloadPath = path.join("preload", `${page}.js`);
-	const preloadExists = fileExists(path.join(CDP_FILES_PATH, preloadPath));
+	const preloadExists = await fileExists(path.join(CDP_FILES_PATH, preloadPath));
 	// Don't print "found no modules", since it's gonna be found later
 	if (preloadExists) {
 		await run(EXPRESSIONS.setPreloadExists, conn);
