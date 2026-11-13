@@ -44,22 +44,6 @@ var specialModules: ClassModuleMap = {
 		const keys = Object.keys(mod);
 		const name = (() => {
 			switch (true) {
-				// 9441
-				// note: this has a linkregionbox module too, and another one
-				// including a DragHighlightContainer class but not in use
-				case exists("DragTarget"):
-					return "bbcodeeditor";
-				case exists("BBCode"):
-					return "bbcodesuggestions";
-				case exists("ImagesOuterContainer"):
-					return "clanimagechooser";
-				case exists("Image") && Object.keys(e).length === 1:
-					return "clanimagepickandresize";
-				case exists("CropImage"):
-					return "cropimage";
-				case exists("ShareDescription"):
-					return "sharewithfriends";
-
 				// awardicon
 				case exists("IconList"):
 					return "awardicon";
@@ -86,6 +70,22 @@ var specialModules: ClassModuleMap = {
 				case exists("ClipSavedHint"):
 					return "gamerecordingclip";
 
+				// shareeventdialog
+				// note: this has a linkregionbox module too, and another one
+				// including a DragHighlightContainer class but not in use
+				case exists("DragTarget"):
+					return "bbcodeeditor";
+				case exists("BBCode"):
+					return "bbcodesuggestions";
+				case exists("ImagesOuterContainer"):
+					return "clanimagechooser";
+				case exists("Image") && Object.keys(e).length === 1:
+					return "clanimagepickandresize";
+				case exists("CropImage"):
+					return "cropimage";
+				case exists("ShareDescription"):
+					return "sharewithfriends";
+
 				// virtualkeyboard
 				case exists("Keyboard"):
 					return "virtualkeyboard";
@@ -100,12 +100,42 @@ var specialModules: ClassModuleMap = {
 
 // biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 var exportedModules: ExportedModuleMap = [
-	["aboutsteamdialog", (e) => e.AboutSteamDialog],
-	["accountpanel", (e) => e.ChangePersonaNameContent],
-	["accountsettings", (e) => e.Avatar && e.EntryLabel],
+	// achievements
+	["achievementscompletionawards", (e) => e.GroupAchievementRibbon],
+	["achievementsets", (e) => e.CompletionBackgroundContainer],
+	["achievementsetsartwork", (e) => e.Artwork && Object.keys(e).length === 1],
+	["achievementsetspinnedlist", (e) => e.PinnedAchievementsList],
+	["achievementsetsfriendcomparebox", (e) => e.FriendCompareBox],
+	["achievementsgroupheader", (e) => e.GroupHeaderCompletionBackground],
+	["achievementsprogressbar", (e) => e.AchievementProgressBar && e.DLC],
+	["achievementsprogressbargroups", (e) => e.CompletedCallout],
+	["achievementstable", (e) => e.GlobalProgressText],
+
+	// maybe old, not seen after achievement sets update
 	["achievementsheader", (e) => e.LeaderboardsButton],
 	["achievementslist", (e) => e.UserUnlockDateTime && !e.Page],
 	["achievementspage", (e) => e.UserUnlockDateTime && e.Page],
+
+	// baseui
+	["baseui_button", (e) => e.Button && e["Size-1"]],
+	["baseui_checkbox", (e) => e.Checkbox && e["Variant-dark"]],
+	["baseui_controlbox", (e) => e.ControlBox],
+	["baseui_flex", (e) => e.Flex && e.Direction],
+	["baseui_grid", (e) => e.Grid && e.AlignItems],
+	["baseui_heading", (e) => e["HeadingSize-1"]],
+	["baseui_icon", (e) => e.IconSizeDefault],
+	["baseui_layout", (e) => e["mx-0"]],
+	["baseui_loadingspinner", (e) => e.Spinner && e["Size-1"]],
+	["baseui_popoversurface", (e) => e.ListBoxOption],
+	["baseui_separator", (e) => e.Separator && e["Size-1"]],
+	["baseui_text", (e) => e["TextSize-1"]],
+	["baseui_textentry", (e) => e.TextEntry],
+	["baseui_textlink", (e) => e.TextLinkButton],
+	["baseui_toggle", (e) => e.Track && e["Size-1"]],
+
+	["aboutsteamdialog", (e) => e.AboutSteamDialog],
+	["accountpanel", (e) => e.ChangePersonaNameContent],
+	["accountsettings", (e) => e.Avatar && e.EntryLabel],
 	["actionbuttonlegenditem", (e) => e.ActionButtonLabel],
 	["activateproductdialog", (e) => e.ActivateProductHeading],
 	["addnonsteamgamedialog", (e) => e.AddNonSteamGameDialog],
@@ -128,6 +158,7 @@ var exportedModules: ExportedModuleMap = [
 	["appdetailscontrollersupport", (e) => e.ControllerSectionBody],
 	["appdetailsdlcsection", (e) => e.DLCSection],
 	["appdetailsfeatureicon", (e) => e.ExtraMargin],
+	["appdetailsframeratereportingbanner", (e) => e.FramerateReportingBanner],
 	["appdetailsfriendssection", (e) => e.FriendsOverflow],
 	["appdetailsgameinfocontainer", (e) => e.GameInfoShadow],
 	["appdetailsgameinfopanel", (e) => e.GameDescription],
