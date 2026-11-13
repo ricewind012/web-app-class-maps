@@ -3,6 +3,60 @@ import type { ComponentListItem } from "./types";
 // TODO: simplemodaldialog & throbber don't get fetched in the market page
 
 export const componentList: Record<string, ComponentListItem> = {
+	baseui_flex: {
+		classes: [
+			"Flex",
+			"Direction",
+			"Justify",
+			"Align",
+			"Gap",
+			"GapX",
+			"GapY",
+			"Wrap",
+			"Inline",
+		],
+		filter: (info) =>
+			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
+			info.strings.has("flow-children") &&
+			info.strings.has("wrap"),
+	},
+	baseui_grid: {
+		classes: [
+			"Grid",
+			"Display",
+			"Columns",
+			"Rows",
+			"AutoColumns",
+			"AutoRows",
+			"AutoFlow",
+			"Areas",
+			"Flow",
+			"AlignContent",
+			"JustifyContent",
+			"Gap",
+			"GapX",
+			"GapY",
+		],
+		filter: (info) =>
+			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
+			info.strings.has("flow-children") &&
+			!info.strings.has("wrap"),
+	},
+	baseui_popoverlist: {
+		classes: ["Root", "Item"],
+		filter: (info) =>
+			info.strings.has(
+				"<PopoverListItem> must be a child of <PopoverListRoot>.",
+			),
+	},
+	baseui_radio: {
+		classes: ["RadioItem", "Radio"],
+		classesInlined: ["RadioGroupDisabled"],
+		filter: (info) =>
+			info.strings.has(
+				"<RadioGroup.Option> must be rendered within a <RadioGroup.Root>",
+			),
+	},
 	globalfooter: {
 		classes: [
 			"GlobalFooter",
@@ -192,59 +246,5 @@ export const componentList: Record<string, ComponentListItem> = {
 		classes: ["TextToolTip"],
 		// Dude
 		filter: (info) => info.strings.has("tool-tip-source"),
-	},
-	tw_flex: {
-		classes: [
-			"Flex",
-			"Direction",
-			"Justify",
-			"Align",
-			"Gap",
-			"GapX",
-			"GapY",
-			"Wrap",
-			"Inline",
-		],
-		filter: (info) =>
-			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
-			info.strings.has("flow-children") &&
-			info.strings.has("wrap"),
-	},
-	tw_grid: {
-		classes: [
-			"Grid",
-			"Display",
-			"Columns",
-			"Rows",
-			"AutoColumns",
-			"AutoRows",
-			"AutoFlow",
-			"Areas",
-			"Flow",
-			"AlignContent",
-			"JustifyContent",
-			"Gap",
-			"GapX",
-			"GapY",
-		],
-		filter: (info) =>
-			["as", "focusable", "navProps"].every((e) => info.keys.has(e)) &&
-			info.strings.has("flow-children") &&
-			!info.strings.has("wrap"),
-	},
-	tw_popoverlist: {
-		classes: ["Root", "Item"],
-		filter: (info) =>
-			info.strings.has(
-				"<PopoverListItem> must be a child of <PopoverListRoot>.",
-			),
-	},
-	tw_radio: {
-		classes: ["RadioItem", "Radio"],
-		classesInlined: ["RadioGroupDisabled"],
-		filter: (info) =>
-			info.strings.has(
-				"<RadioGroup.Option> must be rendered within a <RadioGroup.Root>",
-			),
 	},
 };
