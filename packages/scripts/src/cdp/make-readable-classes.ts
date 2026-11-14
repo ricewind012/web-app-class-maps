@@ -3,10 +3,6 @@ declare var classModules: ClassModuleMap;
 var readableClassMap = new Map<string, string>();
 for (const [modName, mod] of Object.entries(classModules)) {
 	for (const [className, value] of Object.entries(mod)) {
-		if (typeof value !== "string") {
-			continue;
-		}
-
 		readableClassMap.set(value, `${modName}_${className}`);
 	}
 }

@@ -28,26 +28,33 @@ for (const i of Object.keys(initReq.m)) {
 	webpackCache[i] = initReq(i);
 }
 
-// Leave only the relevant modules
-var allModules = Object.values<WebpackModule>(webpackCache).filter((e) => {
-	if (!e || typeof e !== "object" || e.__esModule) {
-		return false;
+var allModules: WebpackModule[] = [];
+for (const mod of Object.values<WebpackModule>(webpackCache)) {
+	if (!mod || typeof mod !== "object" || mod.__esModule) {
+		continue;
 	}
 
-	const keys = Object.keys(e);
+	const keys = Object.keys(mod);
 	const first = keys[0];
-	return (
-		first &&
-		first.length >= 2 &&
-		!(
-			keys.length === 1 &&
+	const notNeeded =
+		!first ||
+		first.length < 2 ||
+		(keys.length === 1 &&
 			(first === "duration-app-launch" ||
 				first === "version" ||
-				first.match(/^str[A-Z]/))
-		) &&
-		keys.every((k) => typeof e[k] === "string")
-	);
-});
+				first.match(/^str[A-Z]/))) ||
+		!keys.every((key) => typeof mod[key] === "string");
+	if (notNeeded) {
+		continue;
+	}
+
+	const copy: WebpackModule = {};
+	for (const [k, v] of Object.entries(mod)) {
+		// "M5YgSyrfvCXXY_XYhYzcl Icon" -> "M5YgSyrfvCXXY_XYhYzcl"
+		copy[k] = v.replace(/\s+.*/, "");
+	}
+	allModules.push(copy);
+}
 
 // biome-ignore lint/correctness/noUnusedVariables: Runs globally in CDP
 function findModule(filter: (mod: WebpackModule) => boolean) {
