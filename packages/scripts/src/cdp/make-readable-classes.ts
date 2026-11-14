@@ -1,27 +1,33 @@
+declare var classModules: ClassModuleMap;
+
+var readableClassMap = new Map<string, string>();
+for (const [modName, mod] of Object.entries(classModules)) {
+	for (const [className, value] of Object.entries(mod)) {
+		if (typeof value !== "string") {
+			continue;
+		}
+
+		readableClassMap.set(value, `${modName}_${className}`);
+	}
+}
+
 /**
  * @returns the readable class name.
  */
 function getNormalClass(className: string) {
-	for (const key of Object.keys(classModules)) {
-		const mod = classModules[key];
-		const keys = Object.keys(mod);
-		const name = keys.find((e) => mod[e] === className);
-		if (!name) {
-			continue;
-		}
-
-		return [key, name].join("_");
+	const readableClass = readableClassMap.get(className);
+	if (readableClass) {
+		return readableClass;
 	}
 
-	notInDb.push(className);
+	notInDb.add(className);
 }
 
 /**
  * Sets readable classes to a `data-readable-class` attribute.
  */
 function normalizeElement(el: HTMLElement) {
-	const readableClasses = [...el.classList]
-		.map(getNormalClass)
+	const readableClasses = Array.from(el.classList, getNormalClass)
 		.filter(Boolean)
 		.map((e) => `\t${e}`)
 		.join("\n");
@@ -45,12 +51,12 @@ function main({ target }: { target: Window }) {
 		}
 	}
 
-	if (notInDb.length > 0) {
-		const classes = [...new Set(notInDb)];
+	if (notInDb.size > 0) {
+		const classes = [...notInDb].sort();
 		console.error(
 			"%s classes are not in the classes db: %o",
 			classes.length,
-			classes.sort(),
+			classes,
 		);
 	}
 }
@@ -62,7 +68,7 @@ declare const popups: Window[];
 declare const SteamClient: { User: object };
 
 var inSteamClient = !!SteamClient?.User;
-var notInDb: string[] = [];
+var notInDb = new Set<string>();
 if (inSteamClient) {
 	window.popups = [...g_PopupManager.GetPopups()].map((e) => e.window);
 	for (const popup of popups) {
