@@ -24,6 +24,7 @@ var specialModules: ClassModuleMap = {
 		...(
 			await Promise.all(
 				[
+					"8624",
 					"awardicon",
 					"broadcast",
 					"chunk~1a96cdf59",
@@ -44,6 +45,10 @@ var specialModules: ClassModuleMap = {
 		const keys = Object.keys(mod);
 		const name = (() => {
 			switch (true) {
+				// 8624
+				case exists("PinnedAchievementsList"):
+					return "achievementspinnedlist";
+
 				// awardicon
 				case exists("IconList"):
 					return "awardicon";
@@ -104,10 +109,10 @@ var exportedModules: ExportedModuleMap = [
 	["achievementscompletionawards", (e) => e.GroupAchievementRibbon],
 	["achievementsets", (e) => e.CompletionBackgroundContainer],
 	["achievementsetsartwork", (e) => e.Artwork && Object.keys(e).length === 1],
-	["achievementsetspinnedlist", (e) => e.PinnedAchievementsList],
 	["achievementsetsfriendcomparebox", (e) => e.FriendCompareBox],
+	["achievementsetstooltip", (e) => e.AchievementTooltip],
 	["achievementsgroupheader", (e) => e.GroupHeaderCompletionBackground],
-	["achievementsprogressbar", (e) => e.AchievementProgressBar && e.DLC],
+	["achievementsprogressbar", (e) => e.AchievementProgressBar && e.Small],
 	["achievementsprogressbargroups", (e) => e.CompletedCallout],
 	["achievementstable", (e) => e.GlobalProgressText],
 
@@ -158,7 +163,7 @@ var exportedModules: ExportedModuleMap = [
 	["appdetailscontrollersupport", (e) => e.ControllerSectionBody],
 	["appdetailsdlcsection", (e) => e.DLCSection],
 	["appdetailsfeatureicon", (e) => e.ExtraMargin],
-	["appdetailsframeratereportingbanner", (e) => e.FramerateReportingBanner],
+	["appdetailsframeratereport", (e) => e.FramerateReportingBanner],
 	["appdetailsfriendssection", (e) => e.FriendsOverflow],
 	["appdetailsgameinfocontainer", (e) => e.GameInfoShadow],
 	["appdetailsgameinfopanel", (e) => e.GameDescription],
@@ -235,7 +240,6 @@ var exportedModules: ExportedModuleMap = [
 	["chatroommenu", (e) => e.ChatRoomContextNoPermission],
 	["chatroomnotificationsettings", (e) => e.scrollMaskVertical],
 	["chattabs", (e) => e.ChatTabTransitionGroup],
-	["checkforupdatesdialog", (e) => e.CheckForUpdatesDialog],
 	["claimitemshared", (e) => e.DialogCtn],
 	["clipdecorator", (e) => e.ClipDecorator],
 	["cliphighlightcontextmenu", (e) => e.HighlightContextMenuItem],
@@ -295,7 +299,7 @@ var exportedModules: ExportedModuleMap = [
 	["debugpointer", (e) => e.DebugPointer],
 	["deckcompaticons", (e) => e.CompatIcon],
 	["decksetuphelp", (e) => e.SetupHelp],
-	["deckverified", (e) => e.CompatibilityDetailsContainerDesktop],
+	["deckverified", (e) => e.CompatibilityDetailsContainer],
 	["deferredsettinglabel", (e) => e.DeferredSettingLabel],
 	["demobutton", (e) => e.DemoButton && e.DisabledButton],
 	["deskjobpromo", (e) => e.DeskJobPromo],
@@ -429,6 +433,7 @@ var exportedModules: ExportedModuleMap = [
 	["lockscreen", (e) => e.PINClearedQuestion],
 	["login", (e) => e.UserChooser],
 	["loginpanel", (e) => e.LoginBackground],
+	["loginuserchooser", (e) => e.CachedUsers],
 	["logsettings", (e) => e.ManualOverlayContainer],
 	["main", (e) => e.throbberContainer],
 	["mainbrowser", (e) => e.MainBrowserContainer],
@@ -491,7 +496,7 @@ var exportedModules: ExportedModuleMap = [
 	["personastatusicons", (e) => e.PersonaStatusIcon],
 	["pininput", (e) => e.DigitInputField],
 	["playersdialog", (e) => e.PlayersDialog],
-	["powermenu", (e) => e.SuspendDialog && e.ActionButton],
+	["powermenu", (e) => e.SuspendDialog],
 	["presenterpopup", (e) => e.SpeakerInfoInner],
 	["progressbar", (e) => e.ProgressBarFieldStatus],
 	["qrcode", (e) => e.QRBits],
@@ -566,6 +571,7 @@ var exportedModules: ExportedModuleMap = [
 			!e.FriendGame &&
 			!e.AllNotificationsCommentPlus,
 	],
+	["staticsteamavatar", (e) => e.AvatarHolder],
 	["steamavatar", (e) => e.avatarFrameImg],
 	["steamchinareviewlauncher", (e) => e.AccountMenu && e.AppStatus],
 	["steamdeckbootupthrobber", (e) => e.MoviePlaying],
