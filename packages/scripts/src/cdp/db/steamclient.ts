@@ -38,10 +38,14 @@ var specialModules: ClassModuleMap = {
 			)
 		)
 			.join("")
-			.matchAll(/e\.exports=(.*?\})\}/g),
+			.matchAll(/\w+\.exports=(.*?\})\}/g),
 	].map((e) => {
 		const exists = (c: string) => keys.some((e) => e === c);
 		const mod: ClassModule = JSON.parse(e[1].replace(/(\w+):/g, '"$1":'));
+		for (const [k, v] of Object.entries(mod)) {
+			// "M5YgSyrfvCXXY_XYhYzcl Icon" -> "M5YgSyrfvCXXY_XYhYzcl"
+			mod[k] = v.replace(/\s+.*/, "");
+		}
 		const keys = Object.keys(mod);
 		const name = (() => {
 			switch (true) {
