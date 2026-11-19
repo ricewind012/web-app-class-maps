@@ -1,4 +1,17 @@
+import { componentList as sharedComponentList } from "./steam-shared";
 import type { ComponentListItem } from "./types";
+
+// XD
+const sharedWebComponents = Object.fromEntries(
+	Object.entries(sharedComponentList).filter(([k]) => k.startsWith("global")),
+);
+for (const k of Object.keys(sharedWebComponents)) {
+	Reflect.deleteProperty(sharedComponentList, k);
+}
+
+// Remove AvatarFrame{,Img} (wtf)
+sharedComponentList.staticsteamavatar.classes =
+	sharedComponentList.staticsteamavatar.classes.slice(0, -2);
 
 export const componentList: Record<string, ComponentListItem> = {
 	accountpanel: {
@@ -34,6 +47,52 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		classesInlined: ["Avatar"],
 		filter: (info) => info.strings.has("#Settings_Account_ViewProfile"),
+	},
+	cliptimeline: {
+		classes: [
+			"TimelineAndControls",
+			"PlayerAndControls",
+			"VideoPlayerContainer",
+			"TimelineContainer",
+			"GamepadTimelineContainer",
+			"TourYellowUnderline",
+			"LoadingTimeline",
+			"ScrollAndControlsCtn",
+			"TimelineScrollContainer",
+			"ContentContainer",
+			"AbsoluteLayer",
+			"RelativeLayer",
+			"RecordingDecorators",
+			"ClipDecorators",
+			"GameModes",
+			"DateDecorator",
+			"BackgroundTicks",
+			"Highlights",
+			"RangeHighlights",
+			"RangeSelector",
+			"SeekScrubber",
+			"PlayHead",
+			"PositionLeft",
+			"PositionRight",
+			"Phases",
+		],
+		// TODO
+		// Fullscreen && `br-3t69A9Y0-`
+		// Visible MsPeYVInjso-
+		// DD-gCH4AyRg- GamepadTimelineContainerClipModeSpacer
+		// xP7qeNW99Qo- GamepadMode
+		filter: (info) => info.calls.has("SetTimelineParentCtnRef"),
+	},
+	cliptimelinemarker: {
+		classes: [
+			"Selected",
+			"HighlightIcon",
+			"CustomMarker",
+			"Faded",
+			"Marker",
+			"GameMarkerSVG",
+		],
+		filter: (info) => info.calls.has("serializeToString"),
 	},
 	parentalplaytimeblocked: {
 		classes: ["ParentalButton", "ParentalWrapper"],
@@ -92,6 +151,7 @@ export const componentList: Record<string, ComponentListItem> = {
 				"children",
 			].every((e) => info.keys.has(e)),
 	},
+	staticsteamavatar: sharedComponentList.staticsteamavatar,
 	suggestdialog: {
 		classes: [
 			"mentionDialogPosition",
