@@ -113,14 +113,18 @@ export async function parseFile(source: string, list: string) {
 			}
 
 			const info = uniquelyIdReactComponent(source, renderBody);
-			const a = source.slice(renderBody.start, renderBody.start + 45);
-			a.startsWith("render(){let{className:e,onCon") && console.log(a, info);
+			//const a = source.slice(renderBody.start, renderBody.start + 45);
+			//a.startsWith("render(){let{className:e,onCon") && console.log(a, info);
 			if (!info) {
 				return;
 			}
 
 			state.components[state.index] ||= [];
 			state.components[state.index].push(info);
+			state.classesInlined[state.index] ||= new Set();
+			for (const className of info.classes) {
+				state.classesInlined[state.index].add(className);
+			}
 		},
 		FunctionDeclaration(node) {
 			changeFunctionDepth(true);
