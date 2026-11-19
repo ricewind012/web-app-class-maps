@@ -1,5 +1,6 @@
 import type {
 	CallExpression,
+	MemberExpression,
 	Function as OxcFunction,
 	TemplateLiteral,
 } from "oxc-parser";
@@ -10,8 +11,8 @@ import type {
 export function getFuncName(expr: CallExpression) {
 	// mod.func
 	const c = expr.callee;
-	if (c.type === "MemberExpression" && c.property.type === "Identifier") {
-		return c.property.name;
+	if (c.type === "MemberExpression") {
+		return getMemberExprName(c);
 	}
 
 	// (0, mod.func)
@@ -27,11 +28,11 @@ export function getFuncName(expr: CallExpression) {
 		return;
 	}
 
-	if (rhs.type !== "MemberExpression" || rhs.property.type !== "Identifier") {
+	if (rhs.type !== "MemberExpression") {
 		return;
 	}
 
-	return rhs.property.name;
+	return getMemberExprName(rhs);
 }
 
 /**
@@ -40,6 +41,17 @@ export function getFuncName(expr: CallExpression) {
 function getFuncReturn(decl: OxcFunction) {
 	const ret = decl.body?.body.find((e) => e.type === "ReturnStatement");
 	return ret?.argument;
+}
+
+/**
+ * @returns `mod.useEffect` -> `useEffect`
+ */
+export function getMemberExprName(expr: MemberExpression) {
+	if (expr.property.type !== "Identifier") {
+		return;
+	}
+
+	return expr.property.name;
 }
 
 /**

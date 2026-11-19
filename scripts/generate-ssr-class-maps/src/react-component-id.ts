@@ -85,8 +85,12 @@ export function uniquelyIdReactComponent(text: string, span: Span) {
 		//return;
 	}
 
-	// Wrap in parentheses for anonymous functions used with forwardRef/memo
-	const { errors, program } = parseSync("a.js", `(${outer})`);
+	const source = outer.startsWith("render()")
+		? `function ${outer.slice(outer.indexOf("("))}`
+		: outer;
+	// Wrap in parentheses for anon render() class methods & functions used with
+	// forwardRef/memo
+	const { errors, program } = parseSync("a.js", `(${source})`);
 	if (errors.length > 0) {
 		console.error(errors.map((e) => e.codeframe).join("\n"));
 		return;

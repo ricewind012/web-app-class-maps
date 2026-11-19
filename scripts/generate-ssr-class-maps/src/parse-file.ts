@@ -1,6 +1,11 @@
 import { color } from "bun";
 import { parseSync, Visitor } from "oxc-parser";
-import { getFuncName, isReactComponent, isSSRClassName } from "./ast-utils";
+import {
+	getFuncName,
+	getMemberExprName,
+	isReactComponent,
+	isSSRClassName,
+} from "./ast-utils";
 import { componentClassNameFilterMap } from "./class-name-lists/steam-web-shared-object";
 import type { ComponentListItem } from "./class-name-lists/types";
 import {
@@ -42,10 +47,11 @@ function printClasses(lhs: string[], rhs: string[]) {
 
 export async function parseFile(source: string, list: string) {
 	const classMap = new Map<string, Record<string, string>>();
-	const file =
+	const webFile =
 		source
 			.slice(source.lastIndexOf("\n") + 1, source.length)
 			.match(/^\/\/# sourceMappingURL=(.*)\.map$/)?.[1] ?? "";
+	const file = list.startsWith("steam-client") ? "a.js" : webFile;
 	// Single imports...?
 	if (file === "") {
 		return classMap;
@@ -80,6 +86,35 @@ export async function parseFile(source: string, list: string) {
 
 			const component = node.arguments[0];
 			const info = uniquelyIdReactComponent(source, component);
+			if (!info) {
+				return;
+			}
+
+			state.components[state.index] ||= [];
+			state.components[state.index].push(info);
+		},
+		ClassExpression(node) {
+			const classComponent =
+				node.superClass?.type === "MemberExpression" &&
+				getMemberExprName(node.superClass) === "Component";
+			if (!classComponent) {
+				return;
+			}
+
+			const renderBody = node.body.body.find(
+				(member) =>
+					member.type === "MethodDefinition" &&
+					member.kind === "method" &&
+					member.key.type === "Identifier" &&
+					member.key.name === "render",
+			);
+			if (renderBody?.type !== "MethodDefinition") {
+				return;
+			}
+
+			const info = uniquelyIdReactComponent(source, renderBody);
+			const a = source.slice(renderBody.start, renderBody.start + 45);
+			a.startsWith("render(){let{className:e,onCon") && console.log(a, info);
 			if (!info) {
 				return;
 			}
@@ -188,7 +223,10 @@ export async function parseFile(source: string, list: string) {
 				}
 
 				// React component
-				if (decl.init.type === "CallExpression") {
+				if (
+					decl.init.type === "CallExpression" ||
+					decl.init.type === "ClassExpression"
+				) {
 					const info = uniquelyIdReactComponent(source, decl.init);
 					if (!info) {
 						continue;

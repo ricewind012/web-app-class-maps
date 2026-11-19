@@ -192,7 +192,7 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) => info.strings.has("SimpleModalDialog"),
 	},
 	*/
-	steamavatar: {
+	staticsteamavatar: {
 		classes: [
 			"AvatarHolder",
 			"Avatar",
