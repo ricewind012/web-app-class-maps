@@ -92,4 +92,32 @@ export const componentList: Record<string, ComponentListItem> = {
 				"children",
 			].every((e) => info.keys.has(e)),
 	},
+	suggestdialog: {
+		classes: [
+			"mentionDialogPosition",
+			"mentionDialog",
+			"suggestOption",
+			"mentionSearchOption",
+			"selected",
+		],
+		filter: (info) =>
+			info.keys.has("fnOnMouseOver") && info.keys.has("matchKey"),
+	},
+	voicesettingsfriends: {
+		classes: [
+			// TODO: this is emoticonsuggestion, "ARyrUoFBJKQ-"
+			"Emoticon",
+
+			"RecommendedNote",
+			"TransmissionTypeSettings",
+			"HotkeySettingRow",
+			"HotkeyButton",
+			"HotkeySettingDescription",
+			"VoiceSettings",
+			"AdvancedSettingsButton",
+			"ToggleRow",
+		],
+		classesInlined: ["Capturing", "HotkeyClearButton", "scrollMaskVertical"],
+		filter: (info) => info.strings.has("#VoicePushToMuteAssigned"),
+	},
 };
