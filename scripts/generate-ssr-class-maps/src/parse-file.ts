@@ -113,8 +113,6 @@ export async function parseFile(source: string, list: string) {
 			}
 
 			const info = uniquelyIdReactComponent(source, renderBody);
-			//const a = source.slice(renderBody.start, renderBody.start + 45);
-			//a.startsWith("render(){let{className:e,onCon") && console.log(a, info);
 			if (!info) {
 				return;
 			}

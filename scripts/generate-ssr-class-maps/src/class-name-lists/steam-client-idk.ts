@@ -13,6 +13,9 @@ for (const k of Object.keys(sharedWebComponents)) {
 sharedComponentList.staticsteamavatar.classes =
 	sharedComponentList.staticsteamavatar.classes.slice(0, -2);
 
+// TODO: objects
+// - InviteDropBackground
+
 export const componentList: Record<string, ComponentListItem> = {
 	accountpanel: {
 		classes: [
@@ -47,6 +50,35 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		classesInlined: ["Avatar"],
 		filter: (info) => info.strings.has("#Settings_Account_ViewProfile"),
+	},
+	/* TODO: there are more classes, fix NOW
+	friendsnooze: {
+		classes: [
+			"SnoozeContainer",
+			"SnoozeZ",
+			"Medium",
+			"Large",
+			"Z1",
+			"Z2",
+			"Z3",
+			"hoverParent",
+		],
+		classesInlined: ["animating", "Dim"],
+		// yeah dude
+		filter: (info) => info.strings.has("data-text"),
+	},
+	*/
+	chatroommenu: {
+		classes: [
+			"ChatRoomContextNoPermission",
+			"ChatroomContextMenuDisableableItem",
+		],
+		classesInlined: ["DisabledDescriptor"],
+		filter: (info) => info.strings.has("FindGamesToPlayWithFriends/ChatRoom"),
+	},
+	claimitemshared: {
+		classes: ["CheckMark", "DialogCtn", "EquipCtn"],
+		filter: (info) => info.strings.has("#Sale_ClaimableReward_AlreadyClaimed"),
 	},
 	cliptimeline: {
 		classes: [
@@ -83,6 +115,25 @@ export const componentList: Record<string, ComponentListItem> = {
 		// xP7qeNW99Qo- GamepadMode
 		filter: (info) => info.calls.has("SetTimelineParentCtnRef"),
 	},
+	// TODO: there are more, bug in parse-file
+	cliptimelinecontextmenu: {
+		classes: [
+			"TimelineContextMenuItem",
+			"MenuItem",
+			"AddUserMarker",
+			"TakeScreenshot",
+			"StartEndClip",
+		],
+		filter: (info) =>
+			info.strings.has("Failed to determine time start/end for clip"),
+	},
+	cliptimelinegamemodes: {
+		classes: ["GameModeMarker", "Playing", "Staging", "Menus", "Invalid"],
+		classesInlined: ["GameModeMarkerClip"],
+		filter: (info) =>
+			info.calls.has("ConvertGlobalMSToGlobalPXOffset") &&
+			info.strings.has("translateX( "),
+	},
 	cliptimelinemarker: {
 		classes: [
 			"Selected",
@@ -93,6 +144,64 @@ export const componentList: Record<string, ComponentListItem> = {
 			"GameMarkerSVG",
 		],
 		filter: (info) => info.calls.has("serializeToString"),
+	},
+	eventbbcodesketchfab: {
+		classes: [
+			"sketchfab_play_overlay_image",
+			"sketchfabmodelembedded",
+			"dynamiclink_box",
+			"dynamiclink_content",
+			"dynamiclink_name",
+			"dynamiclink_type",
+		],
+		classesInlined: ["dynamiclink_preview", "dynamiclink_author"],
+		filter: (info) => info.strings.has("#EventDisplay_Sketchfab"),
+	},
+	eventdescriptionstorecapsule: {
+		classes: ["AppSummaryWidgetCtn"],
+		// yeah dude
+		filter: (info) => info.strings.has("AppSummaryWidgetCtn"),
+	},
+	eventreminder: {
+		classes: [
+			"FlexColumnContainer",
+			"ReminderDialog",
+			"ReminderOptions",
+			"ReminderBackground",
+			"ReminderOption",
+			"CheckboxWrapper",
+			"ReminderCheckBox",
+			"IconMode",
+			"ReminderDefault",
+			"TextMode",
+			"ReminderOpennedOptions",
+			"ReminderOptionsHeader",
+			"ReminderCalendarOptions",
+		],
+		classesInlined: [
+			"RemindCheck",
+			"RemindBell",
+			"ReminderExpandsLeft",
+			"RpcThrobber",
+			"FullStartTime",
+			"Unverified",
+			"FlexColumnContainer",
+		],
+		filter: (info) => info.strings.has("#EventDisplay_Reminder_SetReminder"),
+	},
+	eventsexternalimage: {
+		classes: ["ImageBlocked"],
+		filter: (info) => info.strings.has("#Image_Externally_Hosted_Hidden"),
+	},
+	eventsociallinks: {
+		classes: [
+			"AppSocialLinksCtn",
+			"AppSocialLinks",
+			"AppSocialLinkIcon",
+			"AppSocialLinkWithText",
+			"AppSocialText",
+		],
+		filter: (info) => info.strings.has("#EventDisplay_SocialTitle"),
 	},
 	parentalplaytimeblocked: {
 		classes: ["ParentalButton", "ParentalWrapper"],
@@ -127,6 +236,17 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("ContextMenuButton"),
 	},
+	/* No classes in vars
+	personastatusicons: {
+		classesInlined: [
+			"PersonaStatusIcon",
+			"MobilePhoneIcon",
+			"VRIcon",
+			"SteamDeckIcon",
+		],
+		filter: (info) => info.strings.has("#Platform_Hint_Mobile"),
+	},
+	*/
 	settings: {
 		classes: [
 			"SettingsDialogButton",
