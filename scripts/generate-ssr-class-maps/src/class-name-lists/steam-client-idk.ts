@@ -14,7 +14,9 @@ sharedComponentList.staticsteamavatar.classes =
 	sharedComponentList.staticsteamavatar.classes.slice(0, -2);
 
 // TODO: objects
-// - InviteDropBackground
+// - AddMarkerCtn: clipplayback
+// - InviteDropBackground: invitedrop
+// - ImageAndInfoBoxContainer: overlaytimelinepreview
 
 export const componentList: Record<string, ComponentListItem> = {
 	accountpanel: {
@@ -80,6 +82,54 @@ export const componentList: Record<string, ComponentListItem> = {
 		classes: ["CheckMark", "DialogCtn", "EquipCtn"],
 		filter: (info) => info.strings.has("#Sale_ClaimableReward_AlreadyClaimed"),
 	},
+	clipplaybackscrollbar_golivebutton: {
+		classes: [
+			"ClipDecorator", // clipdecorator
+			"ContentAndGradient",
+			"ScrollbarPlaceholder",
+			"LeftControlsAndContent",
+			"ScrollGradientCtn",
+			"FrontGradient",
+			"EndGradient",
+			"ScrollbarAndSiblings",
+			"ScrollBarCtn",
+			"ScrollTrack",
+			"PlayHeadAnnotation",
+			"RangeAnnotation",
+			"ScrollThumb",
+
+			// golivebutton
+			"GoLiveButtonCtn",
+			"GoLiveButton",
+			"JumpToEndIcon",
+		],
+		classesInlined: ["IsLive", "HideGradient", "HideScrollBar", "Highlight"],
+		filter: (info) => info.strings.has("#Playback_AtLatest"),
+	},
+	clipplaybackskip: {
+		classes: ["SkipperCtn", "ArrowButton", "ArrowButtonRight"],
+		classesInlined: ["Disabled"],
+		filter: (info) =>
+			info.strings.has("#HighlightSkipper_JumpToPrevious") &&
+			info.strings.has("#HighlightSkipper_JumpToNext"),
+	},
+	clipplayheadseekscrubber: {
+		classes: [
+			"RangeControls",
+			"RangeSelectorCtn",
+			"InactiveSelectedRangeControl",
+			"SelectedRangeMask",
+			"RangeIcon",
+			"TrackRangeControls",
+			"RangeControl",
+			"RangeMask",
+		],
+		classesInlined: ["Active"],
+		// o23F9bJf68E- Hide
+		filter: (info) =>
+			info.calls.has("ConvertGlobalMSToGlobalPXOffset") &&
+			info.keys.has("setActiveControlState"),
+	},
 	cliptimeline: {
 		classes: [
 			"TimelineAndControls",
@@ -127,6 +177,14 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) =>
 			info.strings.has("Failed to determine time start/end for clip"),
 	},
+	cliptimelinedatedecorator: {
+		classes: ["TimelineRelativeDate"],
+		classesInlined: ["Overlay"],
+		filter: (info) =>
+			info.keys.has("label") &&
+			info.keys.has("transform") &&
+			info.strings.has("translateX("),
+	},
 	cliptimelinegamemodes: {
 		classes: ["GameModeMarker", "Playing", "Staging", "Menus", "Invalid"],
 		classesInlined: ["GameModeMarkerClip"],
@@ -144,6 +202,12 @@ export const componentList: Record<string, ComponentListItem> = {
 			"GameMarkerSVG",
 		],
 		filter: (info) => info.calls.has("serializeToString"),
+	},
+	cliptimelinerecordingdecorator: {
+		classes: ["RecordingDecorator", "LiveRecordingBuffer"],
+		classesInlined: ["Clip", "Manual", "ClipMode", "IsLive"],
+		filter: (info) =>
+			["endPX", "startPX", "recordingType"].every((e) => info.keys.has(e)),
 	},
 	eventbbcodesketchfab: {
 		classes: [
@@ -202,6 +266,20 @@ export const componentList: Record<string, ComponentListItem> = {
 			"AppSocialText",
 		],
 		filter: (info) => info.strings.has("#EventDisplay_SocialTitle"),
+	},
+	gamerecordingtour: {
+		classes: [
+			"TourPositioner",
+			"TourBox",
+			"CloseButton",
+			"X",
+			"Title",
+			"Content",
+			"Action",
+			"TourStopArrow",
+		],
+		classesInlined: ["TipCount"],
+		filter: (info) => info.strings.has("#Tour_TipCount"),
 	},
 	parentalplaytimeblocked: {
 		classes: ["ParentalButton", "ParentalWrapper"],
