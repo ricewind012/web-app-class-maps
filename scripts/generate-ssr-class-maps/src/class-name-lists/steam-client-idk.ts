@@ -16,11 +16,43 @@ sharedComponentList.staticsteamavatar.classes =
 // TODO: objects
 // - AddMarkerCtn: clipplayback
 // - InviteDropBackground: invitedrop
+// - LibraryItemBoxSubscript: appportrait
 // - ChatMessageSteamStore_Description: bbcode
 // - QuickAccessControllerOrderContainer: remoteplay
 // - ImageAndInfoBoxContainer: overlaytimelinepreview
 
 export const componentList: Record<string, ComponentListItem> = {
+	aboutsteamdialog: {
+		classes: [
+			"AboutSteamDialog",
+			"DialogBodyLabel",
+			"DialogBodyText",
+			"Desktop",
+			"DialogHeader",
+			"SteamLogoIcon",
+		],
+		filter: (info) => info.strings.has("#Settings_System_SteamBeta_None"),
+	},
+	/* TODO
+	appproperties: {
+		classes: [
+			"SettingsDialogButton",
+			"NameText",
+			"DlcArt",
+			"PrivacyDLCSection",
+			"PrivacyDLCDescription",
+			"PrefDetailsToggle",
+			"PrivacyDLCList",
+			"PrivacyDLCRow",
+			"CheckboxCol",
+			"DLCTitleArea",
+		],
+		classesInlined: ["OfflineWarning", "Selected"],
+		filter: (info) =>
+			info.strings.has("#AppProperties_Privacy_MarkAppPrivate_Description"),
+	},
+	*/
+
 	accountpanel: {
 		classes: [
 			"CurrentUserProfileBackground",
@@ -77,6 +109,85 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) =>
 			info.strings.has("#Achievements_Row_UnlockedOnDate") &&
 			info.strings.has("dull-8"),
+	},
+	addnonsteamgamedialog: {
+		classes: [
+			"AddNonSteamGameDialog",
+			"DialogHeader",
+			"AddNonSteamGameDialogContent",
+			/* "Desktop": void 0 */
+			"DialogBodyText",
+			"Header",
+			"Checkbox",
+			"Icon",
+			"AppName",
+			"ExePath",
+			"GameList",
+			"Footer",
+			"BrowseButton",
+			"Spacer",
+			"LoadingContainer",
+			"SortArrowContainer",
+			"Arrow",
+			"GameRow",
+			"IconContainer",
+		],
+		filter: (info) => info.strings.has("#AddNonSteam_PickAppTitle"),
+	},
+	appdetailsfriendssection: {
+		classes: [
+			"FriendsSection",
+			"FriendsOverflow",
+			"RecentlyPlayedFriends",
+			"Subsection",
+			"SubsectionHeader",
+			"Friends",
+			"FriendsContainer",
+			"InGame",
+			"Recent",
+			"ShowMore",
+			"Remainder",
+			"AvatarAndLabel",
+			"PlaytimeStatus",
+			"LabelHolder",
+			"PlaytimeSection",
+			"PlaytimeContent",
+			"TimePlayed",
+			"FriendsSectionPlayingNow",
+			"PlayingNowBody",
+			"FriendsPlayingNowBadge",
+			"Icon",
+			"Count",
+			"FriendsPlayingHalfSection",
+			"FriendsSectionSubHeading",
+			"CollapsedFriendList",
+			"GamepadFriendSectionItem",
+			/* "Expanded": void 0 */
+			/* "FriendsActivityOverFlow": void 0 */
+			/* "Ever": void 0 */
+			/* "Wishlist": void 0 */
+			/* "SummaryCarouselContainer": void 0 */
+			/* "GamepadFriendSectionItemLong": void 0 */
+		],
+		classesInlined: [
+			"ForCurrentGame",
+			"GameLogo",
+			"FriendsPlaying",
+			"OwnerList",
+			"Owner",
+			"FriendsHeader",
+			"FriendsCircle",
+			"FriendsLabel",
+			"PlaytimeDetails",
+			"Header",
+			"FriendsPlayingAvatarGrid",
+			"InFriendsTab",
+			"TabSelected",
+			// TODO: PEumdPIErw0- & U9IFKQAEHGM-
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#AppDetails_Friends_ViewWishlist"),
 	},
 	apppartnereventspage: {
 		classes: [
@@ -141,6 +252,52 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("#EventDisplay_NewsHubSubtitle"),
 	},
+	appportraithover: {
+		classes: [
+			"AppPortraitHover",
+			"CapsuleBackgroundContainer",
+			"Content",
+			"AppTitleContainer",
+			"AppTitle",
+			"AppStatus",
+			"Owners",
+			"GameUpdatedContainer",
+			"ImportantUpdate",
+			"GameUpdatedCircle",
+			"DownloadStatus",
+			"DownloadContainer",
+			"DownloadStatusTitle",
+			"DownloadStatusDetails",
+			"ScreenshotCrossfade",
+			"ScreenshotImg",
+			"NoScreenshotFallbackWrapper",
+			"NoScreenshotFallbackAsset",
+			"NoScreenshotFallback",
+			"CrossfadeImage",
+			"FadeIn",
+			"FadeInEnter",
+			"FadeInEnterActive",
+			// "PortraitBar", // familysettings ???
+			/* "GameStatus": void 0 */
+			/* "PlayedRecent": void 0 */
+			/* "PlayedTotal": void 0 */
+		],
+		classesInlined: [
+			"OwnerList",
+			"Owner",
+			"CapsuleBackground",
+			"FriendsPlaying",
+			"FriendsContainer",
+			"FriendsHeader",
+			"FriendsCircle",
+			"FriendsLabel",
+			"PlaytimeDetails",
+			"Header",
+			// TODO
+			...Array.from(Array(14), () => ""),
+		],
+		filter: (info) => info.strings.has("#AppBox_PlayTimeHeader"),
+	},
 	awardmodal: {
 		classes: [
 			"GrantAwardModal",
@@ -197,6 +354,162 @@ export const componentList: Record<string, ComponentListItem> = {
 			// "IconCheckMark",
 		],
 		filter: (info) => info.strings.has("#GrantAwardDescription_Review"),
+	},
+	backgroundglass: {
+		classes: ["BackgroundGlass"],
+		classesInlined: ["Visible", "Blur", "DrawBackground"],
+		filter: (info) =>
+			["darkblur", "blur", "transparent"].every((e) => info.strings.has(e)),
+	},
+	basiclibrary: {
+		classes: [
+			"IdleStatusScreenContent",
+			"Status",
+			"LeftStatus",
+			"RightStatus",
+			"StatusItem",
+			"Icon",
+			"Clock",
+			"MainArea",
+			"WakeInputArea",
+			"Footer",
+			"FooterItem",
+			"DownloadStatusContainer",
+			"Title",
+			"DownloadStatus",
+			"Logo",
+			"Details",
+			"Name",
+			"TimeRemaining",
+			"Progress",
+			"RemainingCount",
+			"WakeDeviceHint",
+			"Text",
+			"WakeInput",
+			"IndicatorContainer",
+			/* TODO
+			"BatteryStatusContainer",
+			"BatteryTime",
+			"BatteryIcon",
+			"AppDetailsMain",
+			"OverlayAppDetailsTransitionEnter",
+			"OverlayAppDetailsTransitionEnterActive",
+			"OverlayAppDetailsTransitionEntered",
+			"OverlayAppDetailsTransitionExit",
+			"OverlayAppDetailsTransitionExitActive",
+			"PartnerEventOverlayContainer",
+			"TransitionWrapper",
+			*/
+			/* "AccessibilityPage": missing */
+			/* "DeveloperPlaceholderButton": missing */
+			/* "Button": missing */
+			/* "MandatoryUpdateTakeoverContent": missing */
+			/* "Container": missing */
+			/* "Image": missing */
+			/* "Title": missing (mandatory-update style) */
+			/* "Text": missing (mandatory-update style) */
+			/* "ButtonContainer": missing */
+		],
+		filter: (info) => info.strings.has("#QuickAccess_Tab_Perf_VR_Settings"),
+	},
+	basicpartnereventspage: {
+		classes: [
+			"BasicPartnerEventsPage",
+			"InnerContainer",
+			"Placeholder",
+			"ScrollablePanel",
+			"BasicPartnerEvent",
+			"EventPlaceholder",
+			"GameIconAndName",
+			"BasicPartnerEventContainer" /* void 0 */,
+			"Anchor" /* void 0 */,
+			"PartnerEventFocusable" /* void 0 */,
+			"GameIcon" /* void 0 */,
+			"GameName" /* void 0 */,
+			"EndOfContent",
+			"PartnerEvent",
+			"InLibraryView" /* void 0 */,
+			"PageableContainer",
+			"EventCarousel",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#Generic_ViewInStore"),
+	},
+	/* TODO: fix parse-file (all components are vars)
+	bottombar: {
+		classes: [
+			"BottomBarContainer",
+			"BottomBar",
+			"DownloadStatus",
+			"DownloadStatusContent",
+			"Status",
+			"Icon",
+			"DetailedDownloadProgress",
+			"ProgressBarWrapper",
+			"StatusLine",
+			"Percentage",
+			"ProgressBar",
+			"AddGameButton",
+			"FriendsButton",
+			"Text",
+			"AddGameMenu",
+			// "GameIcon": void 0
+		],
+		classesInlined: [
+			"ContextMenuItemDisabled",
+			"Disabled",
+			"Queue",
+			"IconBevel",
+		],
+		filter: (info) => info.strings.has("#BottomBar_AddNonSteam"),
+	},
+	*/
+	broadcastfirsttime: {
+		classes: [
+			/* "BroadcastOption": void 0 */
+			"BroadcastFirstTimeDialog",
+			"Welcome",
+			"Requestor",
+			"Settings",
+			/* "SettingsHeader": void 0 */
+			/* "Defaults": void 0 */
+			"Footer",
+			"OKButton",
+		],
+		filter: (info) => info.strings.has("#BroadcastFirstTime_Welcome"),
+	},
+	broadcaststatus: {
+		classes: [
+			"BroadcastStatusBody",
+			"BroadcastStatusDetails",
+			"BroadcastStatusLine",
+			"LiveText",
+			"Icon",
+			"Microphone",
+			"Live",
+			/* "Stat": void 0 */
+		],
+		classesInlined: [
+			"Desktop",
+			"Active",
+			"Requests",
+			"Stats",
+			// TODO
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#BroadcastStatus_Live"),
 	},
 	/* TODO: there are more classes, fix NOW
 	friendsnooze: {
@@ -428,6 +741,41 @@ export const componentList: Record<string, ComponentListItem> = {
 			info.keys.has("fileUploadManager") &&
 			info.strings.has("#Chat_Upload_ErrorAction_Close"),
 	},
+	collectionview: {
+		classes: [
+			"OuterContainer",
+			"ContainerScroll",
+			"Container",
+			"Header",
+			"CollectionName",
+			"SectionCount",
+			"Rule",
+			"EditButton",
+			"Close",
+			"DropOption",
+			"DropTarget",
+			"MissingCollectionMessage",
+			"CollectionEditor",
+			// TODO
+			// "FilterTag",
+			// "FiltertagSpacer",
+			// "RemovedAppTag",
+			/* "AddedAppTag": void 0 */
+		],
+		classesInlined: [
+			"GameIcon",
+			"EditButton",
+			"Pencil",
+			"DynamicCollectionLabelAndButton",
+			"DynamicCollectionLabel",
+			"DynamicCollectionSubHeader",
+			"SearchFilterInput",
+			"Disabled",
+			"RightSideButtons",
+			"FreezeButton",
+		],
+		filter: (info) => info.strings.has("#CollectionViewHeader_UnknownApp"),
+	},
 	colorsettings: {
 		classes: ["PageContainer", "FloatingControls", "Section"],
 		classesInlined: ["Floating", "PreviewImage"],
@@ -471,16 +819,76 @@ export const componentList: Record<string, ComponentListItem> = {
 		filter: (info) =>
 			info.strings.has("#ChatRoom_ServerMessage_RenameChatRoom"),
 	},
+	/* TODO: all components are vars
+	controllerconfiguratoriconpicker: {
+		classes: [
+			"BindingIcon",
+			"BindingIconImage",
+			"IconPickerDialog",
+			"IconGridScrollable",
+			"IconGrid",
+			"IconButton",
+			"TabbedPageBleed",
+			"FooterButtons",
+			"ColorPickerStep",
+			"ColorPickers",
+			"Preview",
+			"ColorPickerColors",
+			"ColorPickerColor",
+			// "Footer": void 0
+			// "WithBackground": void 0
+		],
+		classesInlined: [
+			"Selected",
+			"Highlighted",
+			"WithForeground",
+			"Placeholder",
+		],
+		filter: (info) =>
+			info.strings.has("#ControllerConfigurator_IconPicker_Title"),
+	},
+	*/
+	desktoptoasts: {
+		classes: [
+			"DesktopToastPopup",
+			"Top",
+			"DesktopToastBackground",
+			"Middle",
+			"Bottom",
+			"DesktopToastContainer",
+		],
+		filter: (info) => info.strings.has("NotShown"),
+	},
+	durationcontroldialog: {
+		classes: [
+			"DurationControlDialogBackground",
+			"DurationControlDialog",
+			"TimerContainer",
+			"TimerDisplay",
+			"TimerText",
+			"InfoContainer",
+			"InfoContent",
+		],
+		filter: (info) => info.strings.has("#SteamChina_DurationControl_Init_1"),
+	},
+	errorconditiondesktop: {
+		classes: [
+			"RefreshLoginDialogModal",
+			"RefreshLoginDialog",
+			"RestartNeededDialog",
+		],
+		filter: (info) => info.strings.has("#Login_RefreshSignIn"),
+	},
 	eventbbcodesketchfab: {
 		classes: [
-			"sketchfab_play_overlay_image",
-			"sketchfabmodelembedded",
-			"dynamiclink_box",
-			"dynamiclink_content",
-			"dynamiclink_name",
-			"dynamiclink_type",
+			"SketchfabPlayOverlayImage",
+			"SketchfabModelEmbedded",
+			"DynamicLinkBox",
+			"DynamicLinkContent",
+			"DynamicLinkName",
+			"DynamicLinkType",
 		],
-		classesInlined: ["dynamiclink_preview", "dynamiclink_author"],
+		classesInlined: ["DynamicLinkPreview", "DynamicLinkAuthor"],
 		filter: (info) => info.strings.has("#EventDisplay_Sketchfab"),
 	},
 	eventdescriptionstorecapsule: {
@@ -529,6 +937,99 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("#EventDisplay_SocialTitle"),
 	},
+	footer: {
+		classes: ["BasicFooter", "FooterLegend", "ScreenReaderEnabledMessage"],
+		/* TODO
+		classesInlined: [
+			"QuickAccessFooter",
+			"FloatingVRFooter",
+			"Opaque",
+			"Relative",
+			"Spacer",
+		],
+		*/
+		filter: (info) => info.strings.has("#Devkit_Unsupported_Footer"),
+	},
+	gameinfodialog: {
+		classes: [
+			"DialogBody",
+			"GameInfoDialogContents",
+			"PlayersList",
+			"Header",
+			"Details",
+			"FriendsList",
+			"PingFailed",
+		],
+		filter: (info) => info.strings.has("#GameInfoDialog_PlayerName"),
+	},
+	gamelaunchingdialog: {
+		classes: [
+			"GameLaunchingDialog",
+			"Layout",
+			"LeftColumn",
+			"RightColumn",
+			"PortraitContainer",
+			"OpenSteamButton",
+			"Launching",
+			"GameName",
+			"StatusWrapper",
+			"StatusOverride",
+		],
+		filter: (info) => info.strings.has("#GameAction_LaunchingDialog_Title"),
+	},
+	gamelist: {
+		classes: [
+			"Container",
+			"NoSearchResultsContainer",
+			"NoResultsTitle",
+			"NoResultsLink",
+		],
+		classesInlined: ["NoResultsLink"],
+		filter: (info) => info.strings.has("#GameList_Search_NoResults_Title"),
+	},
+	gamelistbar: {
+		classes: [
+			"Bar",
+			"CollectionIconBox",
+			"Label",
+			"Selected",
+			"Icon",
+			"CollectionButton",
+			"CollectionIcon",
+			"CollectionBar",
+			// why is this separate oh my god
+			// "Container",
+		],
+		/* TODO
+		classesInlined: [
+			"GameListHomeAndSearch",
+			"HomeBox",
+			"CollectionsButton",
+			"OneCollectionWarning",
+		],
+		*/
+		filter: (info) => info.strings.has("#GameList_Home"),
+	},
+	gamelistdropdown: {
+		classes: [
+			"Bar",
+			"SearchBar",
+			"ViewFiltersBar",
+			"MenuHeader",
+			"Arrow",
+			"Filters",
+			"CheckboxWithImage",
+			"ViewName",
+			"AppCount",
+			"DropDown",
+			"Row",
+			"Checkbox",
+			"Rule",
+			"ScrollToTop",
+		],
+		classesInlined: ["Visible", "Disabled", "Active"],
+		filter: (info) => info.strings.has("#GameList_ToolsEnabled_Title"),
+	},
 	gamenotesdialog: {
 		classes: [
 			"NotesPagedSettings",
@@ -572,6 +1073,69 @@ export const componentList: Record<string, ComponentListItem> = {
 		classes: ["Hover", "Link", "LinkHelp"],
 		filter: (info) => info.strings.has("#UserGameNotes_ClickToOpenLink"),
 	},
+	gamepadtoasts: {
+		classes: [
+			"",
+			"GamepadToastPlaceholder",
+			"GamepadToastPopup",
+			"Show",
+			"Hide",
+		],
+		classesInlined: [
+			"VR",
+			"PositionTop",
+			"PositionLeft",
+			"Warning",
+			"TinyToast",
+			"InGame",
+		],
+		filter: (info) => info.strings.has("alert"),
+	},
+	gamepaduiappoverlayvirtualmenucontainer: {
+		classes: [
+			"BrowserViewHost",
+			"VirtualMenuTitle",
+			"VirtualMenuContainer",
+			"CircleSegments",
+			"RadialSegment",
+			"RadialMenuSegmentLabel",
+			"CenterIcon",
+			"CenterText",
+			"InlineGlyph",
+			"SettingsHint",
+		],
+		classesInlined: [
+			"OSKOffset",
+			"Active",
+			"Deadzoned",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#ChatRadialMenu_Header"),
+	},
 	gamerecordingtour: {
 		classes: [
 			"TourPositioner",
@@ -585,6 +1149,366 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		classesInlined: ["TipCount"],
 		filter: (info) => info.strings.has("#Tour_TipCount"),
+	},
+	hardwaresurveydialog: {
+		classes: [
+			"Prompt",
+			"HardwareSurveyDialog",
+			"HardwareSurveySection",
+			"HardwareSurveySections",
+			// MarketingMessagesDialog: void 0 (missing)
+			"Desktop",
+			// DialogHeader: void 0 (missing)
+			"DialogBodyText",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		classesInlined: ["HardwareSurveySections"],
+		filter: (info) => info.strings.has("#SteamUI_ValveSurvey_PromptLabel"),
+	},
+	installrequest: {
+		classes: [
+			"FolderSelector",
+			"Header",
+			"DiskSpace",
+			"CreateShortcuts",
+			"AppsToInstall",
+			"AppToInstall",
+			"AppLogo",
+			"AppName",
+			"AppSizeRequired",
+			"FolderOption",
+			"Focused",
+			"FolderName",
+			"FreeSpace",
+			"NoticeInstallFolder",
+			"InstallRequestModal",
+			// FolderOptions: void 0 (missing)
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		classesInlined: [
+			"FolderFlag",
+			"Warning",
+			"Active",
+			"NoSpace",
+			"FolderFlagStar",
+			"FolderSettings",
+		],
+		filter: (info) => info.strings.has("#GameAction_Install"),
+	},
+	libraryhomemajorupdates: {
+		classes: [
+			"LibraryHomeMajorUpdates",
+			"TransitionGroup",
+			"UpdateButton",
+			"DetailsButton",
+			"HeaderNavigation",
+			"TopBarTabs",
+			"TopBarTab",
+			"Selected",
+			"NextUpdateLink",
+			"DialogEnter",
+			"DialogEnterActive",
+			"DialogExit",
+			"DialogExitActive",
+			"ExplanationDialogContainer",
+			"ExplanationDialogBackground",
+			"ExplanationDialog",
+			"ExplanationTitle",
+			"ExplanationBody",
+			"MajorEventContainer",
+			"MajorEventImageContainer",
+			"MajorEventImage",
+			"BottomShadow",
+			"MajoreEventImageContentContainer",
+			/* TODO
+			"MajorEventImageTemplate",
+			"MajorEventBackground",
+			"MajorEventImageBackgroundBlur",
+			"MajorEvent_Ctn",
+			"AppDetailsSpotlightContainer",
+			"MajorEventContent",
+			"MajorEventSpotlightBackground",
+			"MajorEventTextCtn",
+			"MajorEventTitle",
+			"MajorEventSummary",
+			*/
+			// TransitionEnter: void 0 (missing)
+			// TransitionEnterActive: void 0 (missing)
+			// TransitionExit: void 0 (missing)
+			// TransitionExitActive: void 0 (missing)
+		],
+		classesInlined: [
+			"MajorEventContent",
+			"MajorEventSpotlightBackground",
+			"MajorEventTextCtn",
+			"MajorEventTitle",
+			"MajorEventSummary",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#MajorUpdate_Context_WhyAmISeeingThis"),
+	},
+	/* TODO: fix parse-file, idfk
+	libraryhomenewupdates: {
+		classes: [
+			"PartnerEventRowCapsule",
+			"GameIcon",
+			// HeaderNameAndType: void 0 (missing)
+			"EventTime",
+			"PartnerEventRowCapsule_Container",
+			"HoversEnabled",
+			"EventSummaryContainer",
+			"EventSummaryType",
+			"EventSummaryText",
+			"PartnerEventRowCapsule_MainImageContainer",
+			"PartnerEventRowCapsule_MainImage",
+			"EventOptions",
+			"EventTimeSpan",
+			// DateAndTime: void 0 (missing)
+			"PartnerEventRowCapsule_TextCtn",
+			"Event_Title",
+			"PartnerEventRowCapsule_TextTitle",
+			"GameIconAndName",
+			"GameName",
+			"WhatsNewSettingsContainer",
+			"WhatsNewSettingsContent",
+			"WhatsNewSettings",
+			"WhatsNewHeaderText",
+			"DialogLabelSoft",
+			"WhatsNewPriorityContainer",
+			"WhatsNewGameListSection",
+			"WhatsNewGameListRow",
+			"UpdateLoweredPriorityUndo",
+			"WhatsNewSettingsUndoButton",
+			"SettingsButton",
+			"SettingsAndUndoContainer",
+			"UpdateLoweredPriorityNotice",
+			"UpdatesContainer",
+			// WhatsNewContainer: void 0 (missing)
+			"EventRowCarousel",
+		],
+		classesInlined: [
+			"HoversEnabled",
+			"EventTimeSpan",
+			"GameIconAndName",
+			"GameName",
+			"DialogLabelSoft",
+			"WhatsNewGameListSection",
+			"WhatsNewGameListRow",
+			"WhatsNewSettingsUndoButton",
+		],
+		filter: (info) =>
+			["event", "bInGamepadUI", "rgImageURLs"].every((e) => info.keys.has(e)),
+	},
+	*/
+	libraryhomeplaynext: {
+		classes: [
+			"PlayNextSuggestion",
+			"PlayNextSuggestionMediaContainer",
+			"PlayNextNoResultsContainer",
+			"Message",
+			"PlayNextSubHead",
+			"PlayNextSuggestions",
+			// Short: void 0 (missing)
+		],
+		filter: (info) => info.strings.has("#ActionButtonLabelDismiss"),
+	},
+	libraryhomerecentgames: {
+		classes: [
+			"RecentGames",
+			"RecentGame",
+			"AddedDate",
+			"EmptyDate",
+			"RecentGameMediaContainer",
+			// Featured: void 0 (missing)
+			// Short: void 0 (missing)
+		],
+		filter: (info) =>
+			info.calls.has("GetComputedDisplaySize") &&
+			info.keys.has("bShortLayout") &&
+			info.strings.has("library_display_size"),
+	},
+	libraryhomeshowcases: {
+		classes: [
+			"ShowcaseOuter",
+			"Showcase",
+			"DropOption",
+			"DropTarget",
+			"ShowcaseHeader",
+			"Rule",
+			"DragHandle",
+			"OptionsRule",
+			"CollectionDropDown",
+			"CollectionDropDownContainer",
+			"DropDownItems",
+			"DoneReorderingRow",
+			"DoneReordering",
+			"Sortable",
+			/* TODO
+			"CountDisplay",
+			"Draggable",
+			"EmptyShowcase",
+			"Reordering",
+			"SortingDropDown",
+			"PageButtons",
+			"PageLeft",
+			"Disabled",
+			"PageRight",
+			"Collapser",
+			"Visible",
+			"DeleteButton",
+			"ReorderingDisabled",
+			"Spacer",
+			"Hidden",
+			"EmptyMessage",
+			"ShowcaseArrow",
+			"Message",
+			"ShowcaseGrid",
+			"ChildrenContainer",
+			"DragElement",
+			"Deleting",
+			// LibraryShowCases: void 0 (missing)
+			"AddShowcaseRow",
+			"ButtonHovered",
+			"RuleLeft",
+			"AddShowcase",
+			"RuleRight",
+			"DragInProgress",
+			"DeleteInProgress",
+			// MenuHeader: void 0 (missing)
+			// SectionCount: void 0 (missing)
+			*/
+		],
+		classesInlined: [
+			"CountDisplay",
+			"Draggable",
+			"EmptyShowcase",
+			"Reordering",
+			"SortingDropDown",
+			"PageButtons",
+			"PageLeft",
+			"Disabled",
+			"PageRight",
+			"Collapser",
+			"Visible",
+			"DeleteButton",
+			"ReorderingDisabled",
+			"Spacer",
+			"Hidden",
+			"EmptyMessage",
+			"ShowcaseArrow",
+			"Message",
+			"ShowcaseGrid",
+			"ChildrenContainer",
+			"DragElement",
+			"Deleting",
+			"AddShowcaseRow",
+			/* TODO
+			"ButtonHovered",
+			"RuleLeft",
+			"AddShowcase",
+			"RuleRight",
+			"DragInProgress",
+			"DeleteInProgress",
+			*/
+		],
+		filter: (info) => info.strings.has("#Showcase_AllYourGames"),
+	},
+	librarywhatsnew: {
+		classes: [
+			"Item",
+			"Title",
+			"Description",
+			"ReadMore",
+			"Screenshot",
+			// Container: void 0 (missing)
+		],
+		filter: (info) => info.strings.has("#WhatsNew_PlayNext_Title"),
+	},
+	login: {
+		classes: [
+			"LoginStaticBackground",
+			"TitleContainer",
+			"StatusThrobber",
+			// LoginAnimatedBackground: missing in Vite
+			"",
+			// Show: missing in Vite
+			"",
+			// FadeIn: missing in Vite
+			"",
+			// SteamChina: missing in Vite
+			"",
+			"Login",
+			// WithTitle: missing in Vite
+			"",
+			"UserChooser",
+			// LoginAnimated: missing in Vite
+			"",
+			"Content",
+			"HeaderLogo",
+			"AvatarContainer",
+			"WhosPlaying",
+			"PinPrompt",
+			// idk lol
+			"",
+		],
+		filter: (info) => info.strings.has("#Login_PickUser"),
+	},
+	mainmenu: {
+		classes: [
+			"ViewPlaceholder",
+			"MainMenuEmbedded",
+			"Item",
+			"ItemOuter",
+			"ItemIcon",
+			"ItemLabel",
+			"RunningAppIcon",
+			"Container",
+			"Open",
+			"CurrentUserAvatar",
+			// ConsoleButton: void 0 in Vite
+			"Menu",
+			"RunnningAppSeparator",
+			"FooterBoxShadow",
+			"VR",
+		],
+		classesInlined: [
+			"Fullscreen",
+			"IsVirtualKeyboardShown",
+			"Active",
+			"Blocked",
+			"Unselectable",
+			"ActiveDot",
+			"Open",
+			"Collapsed",
+		],
+		filter: (info) => info.strings.has("#MainTabsOOBE"),
 	},
 	mainmenuapprunning: {
 		classes: [
@@ -624,6 +1548,59 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("StandaloneAppRunningControls"),
 	},
+	mandatoryupdate: {
+		classes: [
+			"MandatoryUpdateTakeoverContent",
+			"Container",
+			"Image",
+			"Title",
+			"Text",
+			"ButtonContainer",
+			"Button",
+		],
+		filter: (info) => info.strings.has("#MandatoryUpdate_Title"),
+	},
+	marketingmessagesdialog: {
+		classes: [
+			"MarketingMessagesDialog",
+			"BrowserViewHost",
+			"FooterControls",
+			"Legal",
+			"ButtonWrapper",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#LibraryHome_MarketingMessages"),
+	},
+	mediadialog: {
+		classes: [
+			"MM",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#MediaManager_Dialog_Header"),
+	},
 	// TODO
 	messages: {
 		classes: [
@@ -649,6 +1626,167 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		classesInlined: ["Open"],
 		filter: (info) => info.strings.has("#Chat_MessageDeleted"),
+	},
+	networkdiagnosticsdialog: {
+		classes: [
+			"SubHeader",
+			"NetworkDialog",
+			"ActiveHeader",
+			"StatsTable",
+			"ClosedHeader",
+			"ColumnLogo",
+			"RouteItem",
+			"RoutingToolTip",
+			// Label: void 0 in Vite
+			"Pct",
+			"Bar",
+			"Num",
+			"Histogram",
+			"NTile",
+			// Value: void 0 in Vite
+			"Distribution",
+			"PingBreakdown",
+			"PingSection",
+			"SectionTitle",
+			"NumSamples",
+			"JitterSection",
+			"PingOrQualityToolTip",
+			// LocalRemoteTitles: void 0 in Vite
+			// PktOutcomeLabel: void 0 in Vite
+			"PacketBreakdown",
+			"LifetimeQualityStats",
+			// numSamples: void 0 in Vite
+			"CloseReasonToolTip",
+			"ColumnAvatar",
+			"ColumnDisplayName",
+			// ColumnStatus: void 0 in Vite
+			"ColumnPingLabel",
+			"ColumnPingValue",
+			"ColumnInOutLabel",
+			"ColumnPktsValue",
+			"ColumnKBValue",
+			"ColumnDurationValue",
+			"ColumnQualityLabel",
+			"ColumnQualityValue",
+		],
+		filter: (info) => info.strings.has("Network Connections"),
+	},
+	notificationcontent: {
+		classes: [
+			"ShortLogoDimensions", // nt-module use is missing; Ie-module use maps to c4
+			// WishlistBlurImage: missing in Vite
+			// HideButton: missing in Vite
+			// SteamNotificationWrapper: missing in Vite
+			"TimestampDesktop",
+			"Timestamp",
+			"StandardLogoDimensions",
+			"ShortLogoDimensions",
+			"AppLogo",
+			"AppLogoBackgroundImage",
+			"ScreenshotThumbnail",
+			"ShortNotificationSteamLogo",
+			"FriendName",
+			"FriendInGameAppColor",
+			"FriendOnlineColor",
+			"IncomingCallToast",
+			"AchievementTextSection",
+			"DescriptionShort",
+			"AchievementIcon",
+			"NotAchieved",
+			"Name",
+			"NoWrap",
+			"NameAndDesc",
+			"Desc",
+			"ProgressLine",
+			"ProgressBar",
+			"DesktopLowBattery",
+			"ReallyLow",
+			"LowBatterySteamLogo",
+			"Text",
+			"Remaining",
+			"LowBattery",
+			"LowBatteryGauge",
+			// Controller: void 0 in Vite
+			"ControllerImg",
+			"ControllerType",
+			"LoggedInAsUserBody",
+			"SystemUpdateIcon",
+			"LowDiskSpace",
+			"HardDrive",
+			"MessageBody",
+			"Sender",
+			"Dash",
+			"Body",
+			"ShortNotificationXboxLogo",
+			"StandardNotificationXboxLogo",
+			"Yellow",
+			"BatteryTemperature",
+			"Warning",
+			"Icon",
+			/* TODO
+			"Content",
+			"Title",
+			"Description",
+			"GameRecordingDuration",
+			"GameRecordingLogo",
+			"FramePromoLogo",
+			*/
+		],
+		classesInlined: [
+			"DescriptionShort",
+			"NotAchieved",
+			"Name",
+			"NoWrap",
+			"ReallyLow",
+			"Warning",
+			// TODO
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#Overlay_FriendInviteToGame_Accept"),
+	},
+	overlayclock: {
+		classes: [
+			"OverlayClock",
+			"Tabs",
+			"TabHeader",
+			"TabClock",
+			"ResizeTextContainer",
+			"ResizeTextLabel",
+			"ClockResizeSlider",
+			"CurrentTimeContainer",
+			"CurrentTime",
+			"TabTimer",
+			"Remaining",
+			"AllowDrag",
+			"TimePartSegment",
+			"TimePart",
+			"TimePartEdit",
+			"TimePartLabel",
+			"ColonSegment",
+			"Colon",
+			"ControlButtons",
+			"Repeat",
+			"Reset",
+			"Icon",
+		],
+		classesInlined: [
+			"Flipped",
+			"Hidden",
+			"ResizeTextContainer",
+			"ResizeTextLabel",
+			"ClockResizeSlider",
+			"Active",
+			"StartStop",
+			"Icon",
+			"Running",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#AppOverlay_Clock_ClockTab"),
 	},
 	overlayguides: {
 		classes: [
@@ -708,6 +1846,50 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("#AppOverlay_Guides_TotalRatings"),
 	},
+	overlaytimeline: {
+		classes: [
+			"TransparentBackground",
+			"KeyboardCapture",
+			"ClipSavedHint",
+			"GameOverlayPlayer",
+			"TimelineAndControls",
+			"Timeline",
+			"MediaButtons",
+			"RecordingIconsAndState",
+			"LowDiskSpaceWarning",
+			"ShowTimeline",
+			"RecordingState",
+			"TooltipText",
+			"OtherRecordingButton",
+			"RemotePlay",
+			"DisableSwitching",
+			"ManualRecording",
+			"BackgroundRecording",
+			"RecordingCircle",
+			"RecordingShortcut",
+			"Flash",
+			"CurrentlyRecording",
+			"Appear",
+			"AppearActive",
+			"AppearDone",
+			"Exit",
+			/* TODO
+			"ExitActive",
+			"ExitDone",
+			"GamePlayerContents",
+			"ShowVideoButton",
+			"ViewClipsButton",
+			*/
+		],
+		classesInlined: [
+			"ClipSavedHint",
+			"ShowTimeline",
+			"DisableSwitching",
+			"Flash",
+			"CurrentlyRecording",
+		],
+		filter: (info) => info.strings.has("#ClipCreated_Confirmation"),
+	},
 	pageablecontainer: {
 		classes: ["PageableContainer", "Small"],
 		classesInlined: [
@@ -760,6 +1942,35 @@ export const componentList: Record<string, ComponentListItem> = {
 			"gameIsPrivateIcon",
 		],
 		filter: (info) => info.strings.has("ContextMenuButton"),
+	},
+	playersdialog: {
+		classes: [
+			"TitleBar",
+			"PlayersDialog",
+			"PlayersListWrapper",
+			"DescriptionText",
+			"StatusText",
+			/* "Friends": void 0 */
+			/* "Invited": void 0 */
+			"Blocked",
+			"AddFriendButton",
+			"PlayersList",
+			"PlayersListBody",
+			"PlayersListHeaderCtr",
+			"PlayersListHeaderRow",
+			"PlayersListHeaderColumn",
+			"PlayersListHeaderCell",
+			"CurrentSortCol",
+			"NameColumn",
+			"AvatarAndName",
+			"Name",
+			/* "GameColumn": void 0 */
+			/* "LastPlayedColumn": void 0 */
+			"OverlayPlayersDialog",
+			/* "Desktop": void 0 */
+		],
+		classesInlined: ["SortCaret", "ColumnResizer", "Empty", "Loading"],
+		filter: (info) => info.strings.has("#PlayersDialog_Status_Friends"),
 	},
 	quickaccessvoicecontrolssteamdeck: {
 		classes: [
@@ -841,11 +2052,89 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) => info.strings.has("#ReorderableList_ReorderInstructions"),
 	},
+	reportaicontentdialog: {
+		classes: ["ErrorText", "ReportText"],
+		filter: (info) => info.strings.has("#AIContentReport_Error"),
+	},
+	rootmenu: {
+		classes: [
+			...Array.from(Array(15), () => ""),
+			"RootMenuButton",
+			"Disabled",
+			// DisabledItem: void 0 in Vite
+			"SteamButton",
+			"Logo",
+			"Icon",
+			"StatusEntry",
+			"RootMenuBar",
+		],
+		// TODO: LOL find a better string maybe
+		filter: (info) =>
+			info.calls.has("GetOnlineFriendCount") &&
+			info.strings.has("#Menu_ViewFriendsList"),
+	},
 	screenshotmanagerphasetags: {
 		classes: ["PhaseTags", "TagGroup", "PhaseListIcon", "Dim"],
 		// TODO: skipped because the above components are all forwardRef'd
 		classesInlined: ["", "TextTags", "Dim"],
 		filter: (info) => info.strings.has("#PhaseList_PhaseGroupAndName"),
+	},
+	serverbrowserdialog: {
+		classes: [
+			"TitleBar",
+			"ServerBrowserDialog",
+			"DialogBody",
+			// "DialogHeader": void 0
+			"TopControlsCtr",
+			"SwitchTabButton",
+			"Selected",
+			"SpacerNoAppSelect",
+			"Spacer",
+			"SearchButton",
+			"SearchActive",
+			"Stop",
+			"Spinner",
+			"ServerTabPane",
+			"ServerList",
+			"SelectColumnsButton",
+			"ServerListHeaderCell",
+			/* "currentSortCol": void 0 */
+			"ServerListHeaderSort",
+			"ServerListHeaderCtr",
+			"ServerListHeaderRow",
+			"ServerRow",
+			"RadioButtonColumn",
+			"PasswordColumn",
+			"BotsColumn",
+			"SecureColumn",
+			"ServerNameColumn",
+			"IPAddressColumn",
+			"GameColumn",
+			"PlayersColumn",
+			"FriendsCountColumn",
+			"MapColumn",
+			"LatencyColumn",
+			"DropdownLabel",
+			"EmptyListExplanation",
+			"FilterOptionsCtr",
+			/* "FilterOptionsNameMapCtr": void 0 */
+			"FilterOptionsLatencyAntiCheatCtr",
+			"FilterOptionsCheckboxesCtr",
+			"BottomControlsRow",
+			"CurrentFiltersSummaryText",
+			"ToggleShowFilterDetailsButton",
+		],
+		/* TODO
+		classesInlined: [
+			"NewSearchButton",
+			"SelectedRow",
+			"Collapsed",
+			"AddFavoriteButton",
+			"SortCaret",
+			"ColumnResizer",
+		],
+		*/
+		filter: (info) => info.strings.has("#ServerBrowser_ViewServerInfo"),
 	},
 	/* No classes in vars
 	personastatusicons: {
@@ -882,6 +2171,83 @@ export const componentList: Record<string, ComponentListItem> = {
 				"children",
 			].every((e) => info.keys.has(e)),
 	},
+	shutdowndialog: {
+		classes: [
+			"Button",
+			"Buttons",
+			"ShutdownDialog",
+			"Body",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#Steam_Shutdown_Waiting_For_Game"),
+	},
+	soundtrackoverlay: {
+		classes: [
+			"Overlay",
+			"OuterContainer",
+			"ContainerScroll",
+			"Title",
+			"Details",
+			"AppDetailsSoundtrack",
+			"Back",
+			// Icon: void 0 in Vite
+			// OverlayLibrary: void 0 in Vite
+			// Checkbox: void 0 in Vite
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		classesInlined: [
+			"Icon",
+			"OverlayLibrary",
+			"Checkbox",
+			// TODO
+			"",
+			"",
+			"",
+			"",
+			"",
+		],
+		filter: (info) => info.strings.has("#SoundtrackControls_Browse"),
+	},
+	/* TODO fix parse-file
+	ssadialog: {
+		classes: [
+			"SSADialog",
+			"ButtonBar",
+			"SSABrowser",
+			"Explanation",
+			"SSAContent",
+		],
+		filter: (info) => info.strings.has("#SSA_Title"),
+	},
+	*/
 	staticsteamavatar: sharedComponentList.staticsteamavatar,
 	suggestdialog: {
 		classes: [
@@ -893,6 +2259,78 @@ export const componentList: Record<string, ComponentListItem> = {
 		],
 		filter: (info) =>
 			info.keys.has("fnOnMouseOver") && info.keys.has("matchKey"),
+	},
+	// TODO sucks
+	titlebarcontrols: {
+		classes: [
+			"LogoutButton",
+			"AccountName",
+			"WalletBalance",
+			"AccountMenuPopup",
+			"AccountMenu",
+			// PersonaName: void 0 in Vite
+			"Chevron",
+			"AnnouncementWave",
+			"AnnouncementWaveSVG",
+			"Icon",
+			"BellIcon",
+			"BellSwing",
+			"BellPart",
+			"BellUvula",
+			"Button",
+			"AnnouncementsButton",
+			"Active",
+			"ActiveAnimation",
+			// FirstFocus: void 0 in Vite
+			"NotificationHeader",
+			"AllNotificationsTitle",
+			"AllNotificationsButton",
+			"NotificationMenuItem",
+			"EmptyNotificationsCtn",
+			"EmptyNotificationsTitle",
+			"EmptyNotificationsBody",
+			"MenuScrollbarHidden",
+			"NotificationsMenuScrollable",
+			"NotificationsMenuEntriesContainer",
+			"NoNew",
+			"HasNew",
+			"WasNew",
+			"Disabled",
+			// dialog: void 0 in Vite
+			"NotificationsMenu",
+			"NotificationButtonContainer",
+			"NotificationsButton",
+			"VRToggle",
+			"Running",
+			"GamepadUIToggle",
+			"SoundtrackControls",
+			"Playing",
+			"ParentalToggleTooltip",
+			"ParentalToggleButton",
+			"Locked",
+			/*
+      "LowDiskWarning",
+      "KioskModeToggleButton",
+      // HasPassword: void 0 in Vite
+      "BranchBar",
+      "SupportAlertsButton",
+      "AckOnlyAlerts",
+      "OSEndOfLifeAlertsButton",
+      "TitleBarControls",
+	  */
+		],
+		classesInlined: [
+			"Icon",
+			"Active",
+			"ActiveAnimation",
+			"NotificationsMenuEntriesContainer",
+			"Running",
+			"Playing",
+			"Locked",
+			"Button",
+			"AckOnlyAlerts",
+		],
+		filter: (info) => info.strings.has("#Menu_ViewMyProfile"),
 	},
 	voicesettingsfriends: {
 		classes: [
