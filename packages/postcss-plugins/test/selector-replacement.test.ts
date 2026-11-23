@@ -59,7 +59,9 @@ test("does not swap #id selectors without a matching class map module", async ()
 test("respects options.ignore", async () => {
 	const file = pathForMap("client");
 	const result = await postcss([
-		selectorReplacementPlugin({ ignore: ["steam/client"] }),
+		selectorReplacementPlugin({
+			ignore: (path) => path.startsWith("src/steam/client"),
+		}),
 	]).process(CONTENT, { from: file });
 	expect(result.css).toStartWith("#HTMLPopupDialog");
 });

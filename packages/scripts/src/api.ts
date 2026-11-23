@@ -49,8 +49,9 @@ interface Script {
 const classMaps = new Map<Page, ClassModuleMap>();
 
 export const connection: CDP.Client = await (() => {
-	// postcss-cli hangs because of cdp
-	const isPostcss = path.basename(process.argv[1]) === "postcss";
+	const isPostcss = process.argv[1].endsWith(
+		path.join("postcss-cli", "index.js"),
+	);
 	if (isPostcss) {
 		return;
 	}
