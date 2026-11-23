@@ -39,7 +39,7 @@ const cwd = process.cwd();
 export const selectorReplacementPlugin: PluginCreator<PluginOptions> = (
 	opts = DEFAULT_OPTIONS,
 ) => ({
-	async Once(css) {
+	async OnceExit(css) {
 		const inputFile = css.source.input.file;
 		const inputFileName = path.parse(inputFile).name;
 
@@ -50,17 +50,17 @@ export const selectorReplacementPlugin: PluginCreator<PluginOptions> = (
 		});
 		//console.log(rules.map((e) => e.selector).join("\n"));
 
-		let prevModName: string;
+		// This will get used later on for the latest files that were found in
+		// the class map, i.e. an SCSS file that is *only* used for including
+		// the @use spam is *not* going to be included on the list.
+		const prevModNames: string[] = [];
+
 		for (const rule of rules) {
 			const { input, start } = rule.source;
 			const pos = input.origin(start.line, start.column);
 			const file = pos === false || !pos.file ? inputFile : pos.file;
 			const relPath = path.relative(cwd, file);
 			const ignored = opts.ignore(relPath);
-			const a =
-				rule.selector ===
-				":where(#TabTimer #TimePart:not(#Running)) #ContentBox";
-			//console.log("%o", [ignored, file, relPath]);
 			if (ignored) {
 				continue;
 			}
@@ -79,7 +79,6 @@ export const selectorReplacementPlugin: PluginCreator<PluginOptions> = (
 			// "src/discord", etc.
 			const resolvedPage = getPage(inputFile) ?? getPage(file);
 			if (!resolvedPage) {
-				//console.log("%s -> %s", file, inputFile);
 				continue;
 			}
 
@@ -90,13 +89,31 @@ export const selectorReplacementPlugin: PluginCreator<PluginOptions> = (
 			}
 
 			const modName = path.parse(fileName).name;
-			const mod = map[modName] ?? map[prevModName];
+			const lastRealMod = prevModNames.findLast((e) => e !== modName);
+			const mod = map[modName] ?? map[lastRealMod];
+			const a = [
+				":where(#TabTimer #TimePart:not(#Running))",
+				":where(#TabTimer #TimePart:not(#Running)) #ContentBox",
+			].some((e) => rule.selector === e);
+			a &&
+				console.log("%o", {
+					a: rule.selector,
+					file,
+					fileName,
+					lastRealMod,
+					mod: !!mod,
+					modName,
+					prevModNames: prevModNames.slice(-10),
+					relPath,
+				});
 			if (!mod) {
 				console.error("[%s] no such module", fileName, rule.selector);
 				continue;
 			}
 
-			prevModName = modName;
+			if (modName !== prevModNames.at(-1)) {
+				prevModNames.push(modName);
+			}
 			rule.selector = rule.selector.replace(SELECTOR, (_, s) => {
 				const id = mod[s];
 				if (!id) {
